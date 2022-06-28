@@ -18,7 +18,7 @@ class Application(QApplication):
         # Fixes app icon not displayed in Windows taskbar
         if platform.system() == "Windows":
             appid = "iyadahmed.awesomeimageeditor.1"
-            ctypes.windll.shell32.SetCurrentProcessExplicitAppUserModelID(appid)
+            ctypes.windll.shell32.SetCurrentProcessExplicitAppUserModelID(appid) # type: ignore
 
         QCoreApplication.setApplicationName("Awesome Image Editor")
         QCoreApplication.setOrganizationName("Iyad Ahmed")
@@ -30,17 +30,17 @@ class Application(QApplication):
         # Dark theme
         self.setStyle("Fusion")
         palette = QPalette()
-        palette.setColor(QPalette.Window, QColor(53, 53, 53))
-        palette.setColor(QPalette.WindowText, Qt.white)
-        palette.setColor(QPalette.Base, QColor(25, 25, 25))
-        palette.setColor(QPalette.AlternateBase, QColor(53, 53, 53))
-        palette.setColor(QPalette.ToolTipBase, Qt.white)
-        palette.setColor(QPalette.ToolTipText, Qt.white)
-        palette.setColor(QPalette.Text, Qt.white)
-        palette.setColor(QPalette.Button, QColor(53, 53, 53))
-        palette.setColor(QPalette.ButtonText, Qt.white)
-        palette.setColor(QPalette.BrightText, Qt.red)
-        palette.setColor(QPalette.Link, QColor(42, 130, 218))
-        palette.setColor(QPalette.Highlight, QColor(42, 130, 218))
-        palette.setColor(QPalette.HighlightedText, Qt.black)
+        palette.setColor(QPalette.ColorRole.Window, QColor(53, 53, 53))
+        palette.setColor(QPalette.ColorRole.WindowText, QColor("white"))
+        palette.setColor(QPalette.ColorRole.Base, QColor(25, 25, 25))
+        palette.setColor(QPalette.ColorRole.AlternateBase, QColor(53, 53, 53))
+        palette.setColor(QPalette.ColorRole.ToolTipBase, QColor("white"))
+        palette.setColor(QPalette.ColorRole.ToolTipText, QColor("white"))
+        palette.setColor(QPalette.ColorRole.Text, QColor("white"))
+        palette.setColor(QPalette.ColorRole.Button, QColor(53, 53, 53))
+        palette.setColor(QPalette.ColorRole.ButtonText, QColor("white"))
+        palette.setColor(QPalette.ColorRole.BrightText, QColor("red"))
+        palette.setColor(QPalette.ColorRole.Link, QColor(42, 130, 218))
+        palette.setColor(QPalette.ColorRole.Highlight, QColor(42, 130, 218))
+        palette.setColor(QPalette.ColorRole.HighlightedText, QColor("black"))
         self.setPalette(palette)

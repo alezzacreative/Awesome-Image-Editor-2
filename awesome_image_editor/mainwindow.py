@@ -58,14 +58,14 @@ class MainWindow(QMainWindow):
         # TODO: visualize filter stack using list view
         self.filter_stack = []
         self.filter_stack_widget = QListView()
-        self.filter_stack_widget.setDragDropMode(QAbstractItemView.InternalMove)
+        self.filter_stack_widget.setDragDropMode(QAbstractItemView.DragDropMode.InternalMove)
 
         self.filter_stack_model = FilterStackModel()
         self.filter_stack_widget.setModel(self.filter_stack_model)
 
         dock_widget = QDockWidget()
         dock_widget.setWidget(self.filter_stack_widget)
-        self.addDockWidget(Qt.RightDockWidgetArea, dock_widget, Qt.Vertical)
+        self.addDockWidget(Qt.DockWidgetArea.RightDockWidgetArea, dock_widget, Qt.Orientation.Vertical)
 
         # TODO: toolbar with tools
         # toolbar = QToolBar()
@@ -88,7 +88,7 @@ class MainWindow(QMainWindow):
         filepath, chosen_filter = QFileDialog.getOpenFileName(
             self,
             "Open Image",
-            QStandardPaths.writableLocation(QStandardPaths.PicturesLocation),
+            QStandardPaths.writableLocation(QStandardPaths.StandardLocation.PicturesLocation),
             "Image files (*.jpg *.png)",
         )
         if not filepath:
@@ -103,7 +103,7 @@ class MainWindow(QMainWindow):
         filepath, chosen_filter = QFileDialog.getSaveFileName(
             self,
             "Save Image",
-            QStandardPaths.writableLocation(QStandardPaths.PicturesLocation),
+            QStandardPaths.writableLocation(QStandardPaths.StandardLocation.PicturesLocation),
             "Image files (*.jpg *.png)",
         )
         if not filepath:
@@ -123,7 +123,7 @@ class MainWindow(QMainWindow):
 
     def show_gaussian_blur_dialog(self):
         dlg = GaussianBlurDialog()
-        dlg.setWindowModality(Qt.ApplicationModal)
+        dlg.setWindowModality(Qt.WindowModality.ApplicationModal)
         dlg.rejected.connect(lambda: print("Rejected"))
         dlg.accepted.connect(lambda: self.filter_stack.append(GaussianBlurFilter(False, dlg.get_blur_radius())))
         dlg.show()

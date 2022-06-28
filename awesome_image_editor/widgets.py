@@ -7,7 +7,7 @@ from PySide2.QtWidgets import (
 )
 
 
-__all__ = ("LinkedSliderSpinBox", "ImageViewer")
+__all__ = ("LinkedSliderSpinBox",)
 
 
 class LinkedSliderSpinBox(QWidget):
@@ -19,7 +19,7 @@ class LinkedSliderSpinBox(QWidget):
 
         layout = QHBoxLayout()
         self.setLayout(layout)
-        self.slider = QSlider(Qt.Horizontal)
+        self.slider = QSlider(Qt.Orientation.Horizontal)
         self.slider.setRange(
             min_value, max_value
         )  # Range must be set before setting value
