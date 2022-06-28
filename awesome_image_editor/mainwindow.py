@@ -57,7 +57,6 @@ class MainWindow(QMainWindow):
 
         # TODO: visualize filter stack using list view
         self.filter_stack = []
-        self.image = None
         self.filter_stack_widget = QListView()
         self.filter_stack_widget.setDragDropMode(QAbstractItemView.InternalMove)
 
@@ -109,13 +108,16 @@ class MainWindow(QMainWindow):
         )
         if not filepath:
             return
-        # TODO: render QGraphicsScene to image
-        if self.image is None:
-            QMessageBox.critical(self, "Error", "No image is currently opened")
 
         try:
-            new_image = evaluate_image(self.image, self.filter_stack)
-            new_image.save(filepath)
+            image = QImage(self.graphics_scene.sceneRect().size().toSize(), QImage.Format.Format_ARGB32_Premultiplied)
+            assert image is not None
+
+            painter = QPainter(image)
+            self.graphics_scene.render(painter)
+            # NOTE: End painter explictly to fix "QPaintDevice: Cannot destroy paint device that is being painted"
+            painter.end()
+            image.save(filepath)
         except:
             QMessageBox.critical(self, "Error", traceback.format_exc())
 
@@ -123,11 +125,7 @@ class MainWindow(QMainWindow):
         dlg = GaussianBlurDialog()
         dlg.setWindowModality(Qt.ApplicationModal)
         dlg.rejected.connect(lambda: print("Rejected"))
-        dlg.accepted.connect(
-            lambda: self.filter_stack.append(
-                GaussianBlurFilter(False, dlg.get_blur_radius())
-            )
-        )
+        dlg.accepted.connect(lambda: self.filter_stack.append(GaussianBlurFilter(False, dlg.get_blur_radius())))
         dlg.show()
 
     def setup_file_menu(self):
