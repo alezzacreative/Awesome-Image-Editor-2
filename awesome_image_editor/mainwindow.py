@@ -1,28 +1,49 @@
 import traceback
+import typing
 
 from PIL import Image
-from PySide2.QtCore import QStandardPaths, Qt
+from PySide2.QtCore import QStandardPaths, Qt, QRectF
+from PySide2.QtGui import QPainter, QPixmap, QImage
 from PySide2.QtWidgets import (
+    QAbstractItemView,
     QAction,
+    QDockWidget,
     QFileDialog,
+    QGraphicsItem,
+    QGraphicsScene,
+    QGraphicsView,
+    QListView,
+    QListWidget,
+    QListWidgetItem,
     QMainWindow,
     QMenu,
     QMessageBox,
-    QListWidget,
-    QAbstractItemView,
-    QListWidgetItem,
-    QListView,
-    QDockWidget,
-    QGraphicsScene,
-    QGraphicsView
+    QStyleOptionGraphicsItem,
+    QWidget,
 )
 
 from .filters.base import evaluate_image
-from .filters.gaussian_blur import GaussianBlurDialog, GaussianBlurFilter
-from .widgets import ImageViewer
 from .filters.filter_stack_widget import FilterStackModel
+from .filters.gaussian_blur import GaussianBlurDialog, GaussianBlurFilter
 
 __all__ = ("MainWindow",)
+
+
+class QGraphicsImageItem(QGraphicsItem):
+    def __init__(self, image: QImage):
+        super().__init__()
+        self.image = image
+
+    def boundingRect(self) -> QRectF:
+        return QRectF(self.image.rect())
+
+    def paint(
+        self,
+        painter: QPainter,
+        option: QStyleOptionGraphicsItem,
+        widget: typing.Optional[QWidget] = ...,
+    ) -> None:
+        painter.drawImage(self.boundingRect(), self.image)
 
 
 class MainWindow(QMainWindow):
@@ -30,9 +51,9 @@ class MainWindow(QMainWindow):
         super().__init__()
         self.setWindowTitle("Awesome Image Editor")
 
-        self.scene = QGraphicsScene()
-        self.canvas = QGraphicsView(self.scene)
-        self.setCentralWidget(self.canvas)
+        self.graphics_scene = QGraphicsScene()
+        self.graphics_view = QGraphicsView(self.graphics_scene)
+        self.setCentralWidget(self.graphics_view)
 
         self.setup_file_menu()
         self.setup_filters_menu()
@@ -77,8 +98,8 @@ class MainWindow(QMainWindow):
         if not filepath:
             return
         try:
-            self.image = Image.open(filepath)
-            self.canvas.set_image(self.image.toqimage())
+            image = Image.open(filepath).toqimage()
+            self.graphics_scene.addItem(QGraphicsImageItem(image))
         except:
             QMessageBox.critical(self, "Error", traceback.format_exc())
 
@@ -91,6 +112,7 @@ class MainWindow(QMainWindow):
         )
         if not filepath:
             return
+        # TODO: render QGraphicsScene to image
         if self.image is None:
             QMessageBox.critical(self, "Error", "No image is currently opened")
 
