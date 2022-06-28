@@ -15,7 +15,7 @@ class Application(QApplication):
     def __init__(self, arg__1: typing.Sequence) -> None:
         super().__init__(arg__1)
 
-        # Fix app icon not displayed in Windows taskbar
+        # Fixes app icon not displayed in Windows taskbar
         if platform.system() == "Windows":
             appid = "iyadahmed.awesomeimageeditor.1"
             ctypes.windll.shell32.SetCurrentProcessExplicitAppUserModelID(appid)
