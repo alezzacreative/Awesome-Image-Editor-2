@@ -28,6 +28,7 @@ class Application(QApplication):
             QIcon((PurePath(__file__).parent / "icons" / "app.png").as_posix())
         )
         # Dark theme
+        # https://stackoverflow.com/a/56851493/8094047
         self.setStyle("Fusion")
         palette = QPalette()
         palette.setColor(QPalette.ColorRole.Window, QColor(53, 53, 53))
