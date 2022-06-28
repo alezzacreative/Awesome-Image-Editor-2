@@ -24,7 +24,9 @@ class Application(QApplication):
         QCoreApplication.setOrganizationName("Iyad Ahmed")
         QCoreApplication.setApplicationVersion("0.0.1")
 
-        self.setWindowIcon(QIcon((PurePath(__file__).parent / "icons" / "app.png").as_posix()))
+        self.setWindowIcon(
+            QIcon((PurePath(__file__).parent / "icons" / "app.png").as_posix())
+        )
         # Dark theme
         self.setStyle("Fusion")
         palette = QPalette()

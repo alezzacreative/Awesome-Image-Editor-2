@@ -3,18 +3,15 @@ import typing
 
 from PIL import Image
 from PySide2.QtCore import QStandardPaths, Qt, QRectF
-from PySide2.QtGui import QPainter, QPixmap, QImage
+from PySide2.QtGui import QPainter, QImage
 from PySide2.QtWidgets import (
     QAbstractItemView,
-    QAction,
     QDockWidget,
     QFileDialog,
     QGraphicsItem,
     QGraphicsScene,
     QGraphicsView,
     QListView,
-    QListWidget,
-    QListWidgetItem,
     QMainWindow,
     QMenu,
     QMessageBox,
@@ -126,7 +123,11 @@ class MainWindow(QMainWindow):
         dlg = GaussianBlurDialog()
         dlg.setWindowModality(Qt.ApplicationModal)
         dlg.rejected.connect(lambda: print("Rejected"))
-        dlg.accepted.connect(lambda: self.filter_stack.append(GaussianBlurFilter(False, dlg.get_blur_radius())))
+        dlg.accepted.connect(
+            lambda: self.filter_stack.append(
+                GaussianBlurFilter(False, dlg.get_blur_radius())
+            )
+        )
         dlg.show()
 
     def setup_file_menu(self):

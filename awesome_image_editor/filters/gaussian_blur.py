@@ -51,7 +51,11 @@ class GaussianBlurDialog(QDialog):
         layout = QHBoxLayout()
         self.setLayout(layout)
 
-        self.spinbox, slider, slider_spinbox_layout = self.create_slider_spinbox_layout()
+        (
+            self.spinbox,
+            slider,
+            slider_spinbox_layout,
+        ) = self.create_slider_spinbox_layout()
         layout.addLayout(slider_spinbox_layout)
 
         buttons_layout = QVBoxLayout()

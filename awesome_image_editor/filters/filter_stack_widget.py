@@ -1,7 +1,6 @@
 from typing import Any
 
 from PySide2.QtCore import QAbstractListModel, QModelIndex, Qt
-from PySide2.QtWidgets import QWidget
 
 
 class FilterStackModel(QAbstractListModel):

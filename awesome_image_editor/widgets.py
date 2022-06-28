@@ -1,5 +1,4 @@
 from PySide2.QtCore import Qt
-from PySide2.QtGui import QImage, QPaintEvent
 from PySide2.QtWidgets import (
     QHBoxLayout,
     QSlider,
@@ -21,13 +20,17 @@ class LinkedSliderSpinBox(QWidget):
         layout = QHBoxLayout()
         self.setLayout(layout)
         self.slider = QSlider(Qt.Horizontal)
-        self.slider.setRange(min_value, max_value)  # Range must be set before setting value
+        self.slider.setRange(
+            min_value, max_value
+        )  # Range must be set before setting value
         self.slider.setValue(default_value)
         self.slider.valueChanged.connect(self._on_slider_set_value)
         layout.addWidget(self.slider)
 
         self.spinbox = QSpinBox()
-        self.spinbox.setRange(min_value, max_value)  # Range must be set before setting value
+        self.spinbox.setRange(
+            min_value, max_value
+        )  # Range must be set before setting value
         self.spinbox.setValue(default_value)
         self.spinbox.valueChanged.connect(self._on_spinbox_set_value)
         layout.addWidget(self.spinbox)
