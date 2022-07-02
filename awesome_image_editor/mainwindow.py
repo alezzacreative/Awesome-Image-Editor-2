@@ -2,7 +2,7 @@ import traceback
 import typing
 
 from PIL import Image
-from PySide2.QtCore import QStandardPaths, Qt, QRectF
+from PySide2.QtCore import QStandardPaths, Qt, QRectF, QAbstractListModel, QModelIndex, Signal
 from PySide2.QtGui import QPainter, QImage
 from PySide2.QtWidgets import (
     QAbstractItemView,
@@ -43,28 +43,51 @@ class QGraphicsImageItem(QGraphicsItem):
         painter.drawImage(self.boundingRect(), self.image)
 
 
+class CustomGraphicsScene(QGraphicsScene):
+    itemAboutToBeInserted = Signal()
+    itemInserted = Signal()
+
+    def addItem(self, item: QGraphicsItem) -> None:
+        self.itemAboutToBeInserted.emit()  # type: ignore
+        super().addItem(item)
+        self.itemInserted.emit()  # type: ignore
+
+
+class GraphicsSceneModel(QAbstractListModel):
+    def __init__(self) -> None:
+        super().__init__()
+        self.graphics_scene = CustomGraphicsScene()
+        self.graphics_scene.itemAboutToBeInserted.connect(lambda: self.beginInsertRows(QModelIndex(), self.rowCount(), self.rowCount()))  # type: ignore
+        self.graphics_scene.itemInserted.connect(lambda: self.endInsertRows())  # type: ignore
+
+    def rowCount(self, parent: QModelIndex = ...) -> int:
+        return len(self.graphics_scene.items())
+
+    def data(self, index: QModelIndex, role: int = ...) -> typing.Any:
+        if index.isValid() and role == Qt.DisplayRole:
+            item: QGraphicsItem = self.graphics_scene.items()[index.row()]
+            return str(item.boundingRect())
+
+
 class MainWindow(QMainWindow):
     def __init__(self):
         super().__init__()
         self.setWindowTitle("Awesome Image Editor")
 
-        self.graphics_scene = QGraphicsScene()
+        self.graphics_scene_model = GraphicsSceneModel()
+        self.graphics_scene = self.graphics_scene_model.graphics_scene
         self.graphics_view = QGraphicsView(self.graphics_scene)
         self.setCentralWidget(self.graphics_view)
 
         self.setup_file_menu()
         self.setup_filters_menu()
 
-        # TODO: visualize filter stack using list view
-        self.filter_stack = []
-        self.filter_stack_widget = QListView()
-        self.filter_stack_widget.setDragDropMode(QAbstractItemView.DragDropMode.InternalMove)
-
-        self.filter_stack_model = FilterStackModel()
-        self.filter_stack_widget.setModel(self.filter_stack_model)
+        self.layers_list_widget = QListView()
+        self.layers_list_widget.setModel(self.graphics_scene_model)
+        # self.layers_list_widget.setDragDropMode(QAbstractItemView.DragDropMode.InternalMove)
 
         dock_widget = QDockWidget()
-        dock_widget.setWidget(self.filter_stack_widget)
+        dock_widget.setWidget(self.layers_list_widget)
         self.addDockWidget(Qt.DockWidgetArea.RightDockWidgetArea, dock_widget, Qt.Orientation.Vertical)
 
         # TODO: toolbar with tools
@@ -125,7 +148,7 @@ class MainWindow(QMainWindow):
         dlg = GaussianBlurDialog()
         dlg.setWindowModality(Qt.WindowModality.ApplicationModal)
         dlg.rejected.connect(lambda: print("Rejected"))
-        dlg.accepted.connect(lambda: self.filter_stack.append(GaussianBlurFilter(False, dlg.get_blur_radius())))
+        # TODO: add blur effect to currently selected layer
         dlg.show()
 
     def setup_file_menu(self):
