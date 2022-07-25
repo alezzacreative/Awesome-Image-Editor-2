@@ -27,9 +27,10 @@ __all__ = ("MainWindow",)
 
 
 class QGraphicsImageItem(QGraphicsItem):
-    def __init__(self, image: QImage):
+    def __init__(self, image: QImage, name="Image"):
         super().__init__()
         self.image = image
+        self.name = name
 
     def boundingRect(self) -> QRectF:
         return QRectF(self.image.rect())
@@ -64,9 +65,11 @@ class GraphicsSceneModel(QAbstractListModel):
         return len(self.graphics_scene.items())
 
     def data(self, index: QModelIndex, role: int = ...) -> typing.Any:
-        if index.isValid() and role == Qt.DisplayRole:
-            item: QGraphicsItem = self.graphics_scene.items()[index.row()]
-            return str(item.boundingRect())
+        if not index.isValid():
+            return
+        if role == Qt.DisplayRole:
+            item: QGraphicsImageItem = self.graphics_scene.items()[index.row()]
+            return item.name
 
 
 class MainWindow(QMainWindow):
