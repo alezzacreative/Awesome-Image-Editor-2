@@ -2,9 +2,9 @@ import traceback
 import typing
 
 from PIL import Image
-from PySide2.QtCore import QStandardPaths, Qt, QRectF, QAbstractListModel, QModelIndex, Signal
-from PySide2.QtGui import QPainter, QImage
-from PySide2.QtWidgets import (
+from PySide6.QtCore import QStandardPaths, Qt, QRectF, QAbstractListModel, QModelIndex, Signal
+from PySide6.QtGui import QPainter, QImage
+from PySide6.QtWidgets import (
     QAbstractItemView,
     QDockWidget,
     QFileDialog,

@@ -5,5 +5,5 @@ from .mainwindow import MainWindow
 
 app = Application(sys.argv)
 main_window = MainWindow()
-exit_code = app.exec_()
+exit_code = app.exec()
 sys.exit(exit_code)
