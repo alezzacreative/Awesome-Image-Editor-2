@@ -2,7 +2,14 @@ import traceback
 import typing
 
 from PIL import Image
-from PySide6.QtCore import QStandardPaths, Qt, QRectF, QAbstractListModel, QModelIndex, Signal
+from PySide6.QtCore import (
+    QStandardPaths,
+    Qt,
+    QRectF,
+    QAbstractListModel,
+    QModelIndex,
+    Signal,
+)
 from PySide6.QtGui import QPainter, QImage
 from PySide6.QtWidgets import (
     QAbstractItemView,
@@ -19,9 +26,7 @@ from PySide6.QtWidgets import (
     QWidget,
 )
 
-from .filters.base import evaluate_image
-from .filters.filter_stack_widget import FilterStackModel
-from .filters.gaussian_blur import GaussianBlurDialog, GaussianBlurFilter
+from .filters.gaussian_blur import GaussianBlurDialog
 
 __all__ = ("MainWindow",)
 
@@ -68,7 +73,7 @@ class GraphicsSceneModel(QAbstractListModel):
         if not index.isValid():
             return
         if role == Qt.DisplayRole:
-            item: QGraphicsImageItem = self.graphics_scene.items()[index.row()]
+            item: QGraphicsImageItem = self.graphics_scene.items()[index.row()]  # type: ignore
             return item.name
 
 
@@ -91,7 +96,9 @@ class MainWindow(QMainWindow):
 
         dock_widget = QDockWidget()
         dock_widget.setWidget(self.layers_list_widget)
-        self.addDockWidget(Qt.DockWidgetArea.RightDockWidgetArea, dock_widget, Qt.Orientation.Vertical)
+        self.addDockWidget(
+            Qt.DockWidgetArea.RightDockWidgetArea, dock_widget, Qt.Orientation.Vertical
+        )
 
         # TODO: toolbar with tools
         # toolbar = QToolBar()
@@ -114,7 +121,9 @@ class MainWindow(QMainWindow):
         filepath, chosen_filter = QFileDialog.getOpenFileName(
             self,
             "Open Image",
-            QStandardPaths.writableLocation(QStandardPaths.StandardLocation.PicturesLocation),
+            QStandardPaths.writableLocation(
+                QStandardPaths.StandardLocation.PicturesLocation
+            ),
             "Image files (*.jpg *.png)",
         )
         if not filepath:
@@ -129,14 +138,19 @@ class MainWindow(QMainWindow):
         filepath, chosen_filter = QFileDialog.getSaveFileName(
             self,
             "Save Image",
-            QStandardPaths.writableLocation(QStandardPaths.StandardLocation.PicturesLocation),
+            QStandardPaths.writableLocation(
+                QStandardPaths.StandardLocation.PicturesLocation
+            ),
             "Image files (*.jpg *.png)",
         )
         if not filepath:
             return
 
         try:
-            image = QImage(self.graphics_scene.sceneRect().size().toSize(), QImage.Format.Format_ARGB32_Premultiplied)
+            image = QImage(
+                self.graphics_scene.sceneRect().size().toSize(),
+                QImage.Format.Format_ARGB32_Premultiplied,
+            )
             assert image is not None
 
             painter = QPainter(image)

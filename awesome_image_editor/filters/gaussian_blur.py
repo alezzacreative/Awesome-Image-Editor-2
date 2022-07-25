@@ -12,18 +12,6 @@ from PySide6.QtWidgets import (
 from PySide6.QtGui import QValidator
 from PySide6.QtCore import Qt
 
-from PIL.Image import Image
-from PIL import ImageFilter
-
-
-@dataclass
-class GaussianBlurFilter:
-    hide: bool
-    radius: float
-
-    def apply(self, image: Image):
-        return image.filter(ImageFilter.GaussianBlur(self.radius))
-
 
 class ClampedDoubleSpinbox(QDoubleSpinBox):
     def validate(self, text: str, pos: int) -> QValidator.State:
@@ -96,8 +84,8 @@ class GaussianBlurDialog(QDialog):
     def create_slider_widget(self):
         slider = QSlider()
         slider.setOrientation(Qt.Horizontal)
-        slider.setRange(self.MIN_RADIUS * 10, self.MAX_RADIUS * 10)
-        slider.setValue(self.DEFAULT_RADIUS * 10)
+        slider.setRange(int(self.MIN_RADIUS * 10), int(self.MAX_RADIUS * 10))
+        slider.setValue(int(self.DEFAULT_RADIUS * 10))
         return slider
 
     def create_slider_spinbox_layout(self):
