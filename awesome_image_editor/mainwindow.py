@@ -2,7 +2,7 @@ import traceback
 import typing
 
 from PIL import Image
-from PySide6.QtCore import (
+from PySide2.QtCore import (
     QStandardPaths,
     Qt,
     QRectF,
@@ -10,8 +10,8 @@ from PySide6.QtCore import (
     QModelIndex,
     Signal,
 )
-from PySide6.QtGui import QPainter, QImage
-from PySide6.QtWidgets import (
+from PySide2.QtGui import QPainter, QImage
+from PySide2.QtWidgets import (
     QAbstractItemView,
     QDockWidget,
     QFileDialog,
@@ -54,17 +54,17 @@ class CustomGraphicsScene(QGraphicsScene):
     itemInserted = Signal()
 
     def addItem(self, item: QGraphicsItem) -> None:
-        self.itemAboutToBeInserted.emit()  # type: ignore
+        self.itemAboutToBeInserted.emit()
         super().addItem(item)
-        self.itemInserted.emit()  # type: ignore
+        self.itemInserted.emit()
 
 
 class GraphicsSceneModel(QAbstractListModel):
     def __init__(self) -> None:
         super().__init__()
         self.graphics_scene = CustomGraphicsScene()
-        self.graphics_scene.itemAboutToBeInserted.connect(lambda: self.beginInsertRows(QModelIndex(), self.rowCount(), self.rowCount()))  # type: ignore
-        self.graphics_scene.itemInserted.connect(lambda: self.endInsertRows())  # type: ignore
+        self.graphics_scene.itemAboutToBeInserted.connect(lambda: self.beginInsertRows(QModelIndex(), self.rowCount(), self.rowCount()))
+        self.graphics_scene.itemInserted.connect(lambda: self.endInsertRows())
 
     def rowCount(self, parent: QModelIndex = ...) -> int:
         return len(self.graphics_scene.items())
