@@ -2,7 +2,7 @@ import traceback
 import typing
 from pathlib import Path
 
-from PySide2.QtCore import (
+from PySide6.QtCore import (
     QStandardPaths,
     Qt,
     QRectF,
@@ -10,8 +10,8 @@ from PySide2.QtCore import (
     QModelIndex,
     Signal,
 )
-from PySide2.QtGui import QPainter, QImage
-from PySide2.QtWidgets import (
+from PySide6.QtGui import QPainter, QImage
+from PySide6.QtWidgets import (
     QDockWidget,
     QFileDialog,
     QGraphicsItem,
