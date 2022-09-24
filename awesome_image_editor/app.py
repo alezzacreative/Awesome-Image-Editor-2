@@ -4,7 +4,7 @@ import typing
 from pathlib import PurePath
 
 from PySide2.QtCore import QCoreApplication
-from PySide2.QtGui import QColor, QIcon, QPalette, Qt
+from PySide2.QtGui import QColor, QIcon, QPalette
 from PySide2.QtWidgets import QApplication
 
 
