@@ -1,5 +1,6 @@
 import traceback
 import typing
+from pathlib import Path
 
 from PySide2.QtCore import (
     QStandardPaths,
@@ -129,7 +130,8 @@ class MainWindow(QMainWindow):
             return
         try:
             image = QImage(filepath)
-            self.graphics_scene.addItem(QGraphicsImageItem(image))
+            image_name = Path(filepath).stem
+            self.graphics_scene.addItem(QGraphicsImageItem(image, image_name))
         except:
             QMessageBox.critical(self, "Error", traceback.format_exc())
 
