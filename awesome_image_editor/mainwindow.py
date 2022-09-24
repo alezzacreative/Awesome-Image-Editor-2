@@ -1,7 +1,6 @@
 import traceback
 import typing
 
-from PIL import Image
 from PySide2.QtCore import (
     QStandardPaths,
     Qt,
@@ -129,7 +128,7 @@ class MainWindow(QMainWindow):
         if not filepath:
             return
         try:
-            image = Image.open(filepath).toqimage()
+            image = QImage(filepath)
             self.graphics_scene.addItem(QGraphicsImageItem(image))
         except:
             QMessageBox.critical(self, "Error", traceback.format_exc())
