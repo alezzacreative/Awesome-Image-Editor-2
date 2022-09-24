@@ -7,7 +7,6 @@ from PySide2.QtCore import QCoreApplication
 from PySide2.QtGui import QColor, QIcon, QPalette
 from PySide2.QtWidgets import QApplication
 
-
 __all__ = ("Application",)
 
 
@@ -18,7 +17,7 @@ class Application(QApplication):
         # Fixes app icon not displayed in Windows taskbar
         if platform.system() == "Windows":
             appid = "iyadahmed.AwesomeImageEditor"
-            ctypes.windll.shell32.SetCurrentProcessExplicitAppUserModelID(appid) # type: ignore
+            ctypes.windll.shell32.SetCurrentProcessExplicitAppUserModelID(appid)  # type: ignore
 
         QCoreApplication.setApplicationName("Awesome Image Editor")
         QCoreApplication.setOrganizationName("Iyad Ahmed")

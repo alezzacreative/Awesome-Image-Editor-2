@@ -11,7 +11,6 @@ from PySide2.QtCore import (
 )
 from PySide2.QtGui import QPainter, QImage
 from PySide2.QtWidgets import (
-    QAbstractItemView,
     QDockWidget,
     QFileDialog,
     QGraphicsItem,
@@ -40,10 +39,10 @@ class QGraphicsImageItem(QGraphicsItem):
         return QRectF(self.image.rect())
 
     def paint(
-        self,
-        painter: QPainter,
-        option: QStyleOptionGraphicsItem,
-        widget: typing.Optional[QWidget] = ...,
+            self,
+            painter: QPainter,
+            option: QStyleOptionGraphicsItem,
+            widget: typing.Optional[QWidget] = ...,
     ) -> None:
         painter.drawImage(self.boundingRect(), self.image)
 
@@ -62,7 +61,8 @@ class GraphicsSceneModel(QAbstractListModel):
     def __init__(self) -> None:
         super().__init__()
         self.graphics_scene = CustomGraphicsScene()
-        self.graphics_scene.itemAboutToBeInserted.connect(lambda: self.beginInsertRows(QModelIndex(), self.rowCount(), self.rowCount()))
+        self.graphics_scene.itemAboutToBeInserted.connect(
+            lambda: self.beginInsertRows(QModelIndex(), self.rowCount(), self.rowCount()))
         self.graphics_scene.itemInserted.connect(lambda: self.endInsertRows())
 
     def rowCount(self, parent: QModelIndex = ...) -> int:

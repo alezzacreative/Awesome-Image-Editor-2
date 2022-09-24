@@ -1,4 +1,5 @@
-from dataclasses import dataclass
+from PySide2.QtCore import Qt
+from PySide2.QtGui import QValidator
 from PySide2.QtWidgets import (
     QDialog,
     QVBoxLayout,
@@ -9,8 +10,6 @@ from PySide2.QtWidgets import (
     QPushButton,
     QCheckBox,
 )
-from PySide2.QtGui import QValidator
-from PySide2.QtCore import Qt
 
 
 class ClampedDoubleSpinbox(QDoubleSpinBox):

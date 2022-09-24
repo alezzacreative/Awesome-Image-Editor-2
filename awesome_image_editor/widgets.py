@@ -6,7 +6,6 @@ from PySide2.QtWidgets import (
     QWidget,
 )
 
-
 __all__ = ("LinkedSliderSpinBox",)
 
 
