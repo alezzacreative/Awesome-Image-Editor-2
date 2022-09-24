@@ -146,6 +146,7 @@ class MainWindow(QMainWindow):
             return
 
         try:
+            # Create new empty image to render the scene into
             image = QImage(
                 self.graphics_scene.sceneRect().size().toSize(),
                 QImage.Format.Format_ARGB32_Premultiplied,
