@@ -9,8 +9,10 @@ from PySide6.QtCore import (
     QAbstractListModel,
     QModelIndex,
     Signal,
+    QPointF,
+    QRect
 )
-from PySide6.QtGui import QPainter, QImage
+from PySide6.QtGui import QPainter, QImage, QPainterPath
 from PySide6.QtWidgets import (
     QDockWidget,
     QFileDialog,
@@ -23,6 +25,7 @@ from PySide6.QtWidgets import (
     QMessageBox,
     QStyleOptionGraphicsItem,
     QWidget,
+    QGraphicsSceneMouseEvent
 )
 
 from .filters.gaussian_blur import GaussianBlurDialog
@@ -35,6 +38,7 @@ class QGraphicsImageItem(QGraphicsItem):
         super().__init__()
         self.image = image
         self.name = name
+        # self.setFlag(QGraphicsImageItem.ItemIsSelectable, True)
 
     def boundingRect(self) -> QRectF:
         return QRectF(self.image.rect())
@@ -47,15 +51,52 @@ class QGraphicsImageItem(QGraphicsItem):
     ) -> None:
         painter.drawImage(self.boundingRect(), self.image)
 
+    # def setSelected(self, selected: bool) -> None:
+    #     super().setSelected(selected)
+    #     print("setSelected")
+
 
 class CustomGraphicsScene(QGraphicsScene):
     itemAboutToBeInserted = Signal()
     itemInserted = Signal()
 
+    def __init__(self):
+        super().__init__()
+        self.drag_start: typing.Optional[QPointF] = None
+        self.drag_end: typing.Optional[QPointF] = None
+
     def addItem(self, item: QGraphicsItem) -> None:
         self.itemAboutToBeInserted.emit()
         super().addItem(item)
         self.itemInserted.emit()
+
+    def mousePressEvent(self, event: QGraphicsSceneMouseEvent) -> None:
+        if event.button() == Qt.LeftButton:
+            self.drag_start = event.scenePos()
+        else:
+            super(CustomGraphicsScene, self).mousePressEvent(event)
+
+    def mouseMoveEvent(self, event: QGraphicsSceneMouseEvent) -> None:
+        if (event.buttons() & Qt.LeftButton) and (self.drag_start is not None):
+            self.drag_end = event.scenePos()
+            self.update()  # force repaint (expensive?)
+        else:
+            super(CustomGraphicsScene, self).mouseMoveEvent(event)
+
+    def mouseReleaseEvent(self, event: QGraphicsSceneMouseEvent) -> None:
+        if (event.button() == Qt.LeftButton) and (self.drag_start is not None) and (self.drag_end is not None):
+            selection_path = QPainterPath()
+            selection_path.addRect(QRectF(self.drag_start, self.drag_end))
+            self.setSelectionArea(selection_path)
+            self.drag_start = None
+            self.drag_end = None
+            self.update()  # force repaint (expensive?)
+        else:
+            super(CustomGraphicsScene, self).mouseReleaseEvent(event)
+
+    def drawForeground(self, painter: QPainter, rect: typing.Union[QRectF, QRect]) -> None:
+        if (self.drag_start is not None) and (self.drag_end is not None):
+            painter.drawRect(QRectF(self.drag_start, self.drag_end))
 
 
 class GraphicsSceneModel(QAbstractListModel):
@@ -85,6 +126,7 @@ class MainWindow(QMainWindow):
         self.graphics_scene_model = GraphicsSceneModel()
         self.graphics_scene = self.graphics_scene_model.graphics_scene
         self.graphics_view = QGraphicsView(self.graphics_scene)
+        # self.graphics_view.setDragMode(QGraphicsView.RubberBandDrag)
         self.setCentralWidget(self.graphics_view)
 
         self.setup_file_menu()
