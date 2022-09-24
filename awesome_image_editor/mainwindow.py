@@ -154,7 +154,7 @@ class MainWindow(QMainWindow):
 
             painter = QPainter(image)
             self.graphics_scene.render(painter)
-            # NOTE: End painter explictly to fix "QPaintDevice: Cannot destroy paint device that is being painted"
+            # NOTE: End painter explicitly to fix "QPaintDevice: Cannot destroy paint device that is being painted"
             painter.end()
             image.save(filepath)
         except:
