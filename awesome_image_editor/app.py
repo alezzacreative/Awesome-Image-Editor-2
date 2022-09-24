@@ -17,7 +17,7 @@ class Application(QApplication):
 
         # Fixes app icon not displayed in Windows taskbar
         if platform.system() == "Windows":
-            appid = "iyadahmed.awesomeimageeditor.1"
+            appid = "iyadahmed.AwesomeImageEditor"
             ctypes.windll.shell32.SetCurrentProcessExplicitAppUserModelID(appid) # type: ignore
 
         QCoreApplication.setApplicationName("Awesome Image Editor")
