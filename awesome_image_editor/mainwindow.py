@@ -93,8 +93,8 @@ class MainWindow(QMainWindow):
         self.layers_list_widget = QListView()
         self.layers_list_widget.setModel(self.graphics_scene_model)
         # self.layers_list_widget.setDragDropMode(QAbstractItemView.DragDropMode.InternalMove)
-
         dock_widget = QDockWidget()
+        dock_widget.setWindowTitle("Layers")
         dock_widget.setWidget(self.layers_list_widget)
         self.addDockWidget(
             Qt.DockWidgetArea.RightDockWidgetArea, dock_widget, Qt.Orientation.Vertical
