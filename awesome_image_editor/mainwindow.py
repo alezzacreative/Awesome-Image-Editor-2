@@ -9,6 +9,8 @@ from PySide6.QtCore import (
     QAbstractListModel,
     QModelIndex,
     Signal,
+    QItemSelection,
+    QItemSelectionModel
 )
 from PySide6.QtGui import QPainter, QImage
 from PySide6.QtWidgets import (
@@ -35,6 +37,7 @@ class QGraphicsImageItem(QGraphicsItem):
         super().__init__()
         self.image = image
         self.name = name
+        self.setFlag(QGraphicsItem.ItemIsSelectable, True)
 
     def boundingRect(self) -> QRectF:
         return QRectF(self.image.rect())
@@ -92,8 +95,36 @@ class MainWindow(QMainWindow):
         self.setup_filters_menu()
 
         self.layers_list_widget = QListView()
+
+        def update_graphics_scene_selection_from_selection_model(selected: QItemSelection, unselected: QItemSelection):
+            for index in selected.indexes():
+                item = self.graphics_scene.items()[index.row()]
+                if not item.isSelected():
+                    # Only update selection if needed (to stop infinite recursion due to signals connected both ways)
+                    item.setSelected(True)
+
+            for index in unselected.indexes():
+                item = self.graphics_scene.items()[index.row()]
+                if item.isSelected():
+                    # Only update selection if needed (to stop infinite recursion due to signals connected both ways)
+                    item.setSelected(False)
+
         self.layers_list_widget.setSelectionMode(QListView.ExtendedSelection)
         self.layers_list_widget.setModel(self.graphics_scene_model)
+
+        # Note: selection model is only available after setting model
+        self.layers_list_widget.selectionModel().selectionChanged.connect(
+            update_graphics_scene_selection_from_selection_model)
+
+        def update_selection_model_selection_from_graphics_scene():
+            for i, item in enumerate(self.graphics_scene.items()):
+                model_index = self.graphics_scene_model.index(i, 0, QModelIndex())
+                selection_model = self.layers_list_widget.selectionModel()
+                selection_model.select(model_index,
+                                       QItemSelectionModel.Select if item.isSelected() else QItemSelectionModel.Deselect)
+
+        self.graphics_scene.selectionChanged.connect(update_selection_model_selection_from_graphics_scene)
+
         # self.layers_list_widget.setDragDropMode(QAbstractItemView.DragDropMode.InternalMove)
         dock_widget = QDockWidget()
         dock_widget.setWindowTitle("Layers")
