@@ -133,6 +133,7 @@ class MainWindow(QMainWindow):
                                        QItemSelectionModel.Select if item.isSelected() else QItemSelectionModel.Deselect)
 
         self.graphics_scene.selectionChanged.connect(update_selection_model_selection_from_graphics_scene)
+        self.graphics_scene.itemInserted.connect(update_selection_model_selection_from_graphics_scene)
 
         # self.layers_list_widget.setDragDropMode(QAbstractItemView.DragDropMode.InternalMove)
         dock_widget = QDockWidget()
