@@ -10,7 +10,8 @@ from PySide6.QtCore import (
     QModelIndex,
     Signal,
     QItemSelection,
-    QItemSelectionModel
+    QItemSelectionModel,
+    QSize
 )
 from PySide6.QtGui import QPainter, QImage
 from PySide6.QtWidgets import (
@@ -24,12 +25,14 @@ from PySide6.QtWidgets import (
     QMenu,
     QMessageBox,
     QStyleOptionGraphicsItem,
-    QWidget,
+    QWidget
 )
 
 from .dailogs.gaussian_blur import GaussianBlurDialog
 
 __all__ = ("MainWindow",)
+
+LAYER_THUMBNAIL_SIZE = QSize(32, 32)
 
 
 class QGraphicsImageItem(QGraphicsItem):
@@ -75,9 +78,14 @@ class GraphicsSceneModel(QAbstractListModel):
     def data(self, index: QModelIndex, role: int = ...) -> typing.Any:
         if not index.isValid():
             return
+
+        item: QGraphicsImageItem = self.graphics_scene.items()[index.row()]  # type: ignore
         if role == Qt.DisplayRole:
-            item: QGraphicsImageItem = self.graphics_scene.items()[index.row()]  # type: ignore
             return item.name
+        elif role == Qt.DecorationRole:
+            return item.image.scaled(LAYER_THUMBNAIL_SIZE, Qt.KeepAspectRatio, Qt.SmoothTransformation)
+        elif role == Qt.SizeHintRole:
+            return LAYER_THUMBNAIL_SIZE
 
 
 class MainWindow(QMainWindow):
