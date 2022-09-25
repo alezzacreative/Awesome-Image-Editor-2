@@ -92,6 +92,7 @@ class MainWindow(QMainWindow):
         self.setup_filters_menu()
 
         self.layers_list_widget = QListView()
+        self.layers_list_widget.setSelectionMode(QListView.ExtendedSelection)
         self.layers_list_widget.setModel(self.graphics_scene_model)
         # self.layers_list_widget.setDragDropMode(QAbstractItemView.DragDropMode.InternalMove)
         dock_widget = QDockWidget()
