@@ -85,6 +85,7 @@ class MainWindow(QMainWindow):
         self.graphics_scene_model = GraphicsSceneModel()
         self.graphics_scene = self.graphics_scene_model.graphics_scene
         self.graphics_view = QGraphicsView(self.graphics_scene)
+        self.graphics_view.setDragMode(QGraphicsView.RubberBandDrag)
         self.setCentralWidget(self.graphics_view)
 
         self.setup_file_menu()
