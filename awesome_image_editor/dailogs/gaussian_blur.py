@@ -45,6 +45,8 @@ class GaussianBlurDialog(QDialog):
         ) = self.create_slider_spinbox_layout()
         layout.addLayout(slider_spinbox_layout)
 
+        self.blur_radius_changed = self.spinbox.valueChanged
+
         buttons_layout = QVBoxLayout()
         layout.addLayout(buttons_layout)
 
@@ -59,15 +61,18 @@ class GaussianBlurDialog(QDialog):
             self.spinbox.setValue(self.DEFAULT_RADIUS)
             slider.setValue(int(self.DEFAULT_RADIUS * 10))
 
-        preview_checkbox = QCheckBox("Preview")
-        preview_checkbox.setChecked(True)
-        self.preview_checkbox_toggled = preview_checkbox.toggled
-        buttons_layout.addWidget(preview_checkbox)
+        self.preview_checkbox = QCheckBox("Preview")
+        self.preview_checkbox.setChecked(True)
+        self.preview_checkbox_toggled = self.preview_checkbox.toggled
+        buttons_layout.addWidget(self.preview_checkbox)
 
         reset_button.clicked.connect(on_reset_clicked)
 
     def get_blur_radius(self):
         return self.spinbox.value()
+
+    def is_preview_enabled(self):
+        return self.preview_checkbox.isEnabled()
 
     def create_spinbox_layout(self):
         layout = QHBoxLayout()

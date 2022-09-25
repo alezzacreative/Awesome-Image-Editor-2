@@ -25,7 +25,8 @@ from PySide6.QtWidgets import (
     QMenu,
     QMessageBox,
     QStyleOptionGraphicsItem,
-    QWidget
+    QWidget,
+    QGraphicsBlurEffect
 )
 
 from .dailogs.gaussian_blur import GaussianBlurDialog
@@ -204,11 +205,30 @@ class MainWindow(QMainWindow):
         except:
             QMessageBox.critical(self, "Error", traceback.format_exc())
 
-    def show_gaussian_blur_dialog(self):
+    def add_gaussian_blur_to_selected_layer(self):
+        if len(self.graphics_scene.selectedItems()) == 0:
+            QMessageBox.information(self,
+                                    "Warning",
+                                    "No selected layers to apply effect, please select at least one layer",
+                                    QMessageBox.StandardButton.Ok)
+            return
+
         dlg = GaussianBlurDialog()
         dlg.setWindowModality(Qt.WindowModality.ApplicationModal)
-        dlg.rejected.connect(lambda: print("Rejected"))
-        # TODO: add blur effect to currently selected layer
+
+        effect = QGraphicsBlurEffect()
+
+        dlg.preview_checkbox_toggled.connect(effect.setEnabled)
+        dlg.blur_radius_changed.connect(effect.setBlurRadius)
+
+        effect.setEnabled(dlg.is_preview_enabled())
+        effect.setBlurRadius(dlg.get_blur_radius())
+
+        selected_item = self.graphics_scene.selectedItems()[0]
+        selected_item.setGraphicsEffect(effect)
+        dlg.rejected.connect(lambda: selected_item.setGraphicsEffect(None))
+        dlg.accepted.connect(lambda: effect.setEnabled(True))
+
         dlg.show()
 
     def setup_file_menu(self):
@@ -219,5 +239,5 @@ class MainWindow(QMainWindow):
 
     def setup_filters_menu(self):
         menu = QMenu("Filters", self)
-        menu.addAction("Gaussian Blur", self.show_gaussian_blur_dialog)
+        menu.addAction("Gaussian Blur", self.add_gaussian_blur_to_selected_layer)
         self.menuBar().addMenu(menu)
