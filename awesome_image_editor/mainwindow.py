@@ -16,7 +16,7 @@ from PySide6.QtWidgets import (
     QGraphicsBlurEffect
 )
 
-from .dailogs.gaussian_blur import GaussianBlurDialog
+from .dialogs.gaussian_blur import GaussianBlurDialog
 from .widgets.graphics_scene import GraphicsSceneModel, QGraphicsImageItem
 from .widgets.layers import LayersView
 
