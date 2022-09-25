@@ -27,7 +27,7 @@ from PySide6.QtWidgets import (
     QWidget,
 )
 
-from .filters.gaussian_blur import GaussianBlurDialog
+from .dailogs.gaussian_blur import GaussianBlurDialog
 
 __all__ = ("MainWindow",)
 
