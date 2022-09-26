@@ -94,14 +94,17 @@ class MainWindow(QMainWindow):
 
         try:
             # Create new empty image to render the scene into
+            self.graphics_scene.setSceneRect(self.graphics_scene.itemsBoundingRect())
             image = QImage(
                 self.graphics_scene.sceneRect().size().toSize(),
                 QImage.Format.Format_ARGB32_Premultiplied,
             )
-            assert image is not None
+            assert image is not None  # In case creation of image fails
+            image.fill(Qt.GlobalColor.transparent)
 
             painter = QPainter(image)
             self.graphics_scene.render(painter)
+
             # NOTE: End painter explicitly to fix "QPaintDevice: Cannot destroy paint device that is being painted"
             painter.end()
             image.save(filepath)
