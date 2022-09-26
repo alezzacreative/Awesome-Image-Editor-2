@@ -13,6 +13,7 @@ class QGraphicsImageItem(QGraphicsItem):
         self.image = image
         self.name = name
         self.setFlag(QGraphicsItem.ItemIsSelectable, True)
+        self.setFlag(QGraphicsItem.ItemIsMovable, True)
 
     def boundingRect(self) -> QRectF:
         return QRectF(self.image.rect())
