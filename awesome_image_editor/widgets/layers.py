@@ -1,7 +1,18 @@
-from PySide6.QtCore import QItemSelection, QModelIndex, QItemSelectionModel
+from PySide6.QtCore import QModelIndex, QItemSelectionModel, QItemSelection
 from PySide6.QtWidgets import QListView
 
 from .graphics_scene import GraphicsSceneModel
+
+
+# class GraphicsSelectionModel(QItemSelectionModel):
+#     def __init__(self, model: GraphicsSceneModel):
+#         super().__init__(model)
+#
+#     def reset(self) -> None:
+#         super().reset()
+#         model: GraphicsSceneModel = self.model()
+#         model.graphics_scene.clearSelection()
+#     def select(self):
 
 
 class LayersView(QListView):
@@ -17,12 +28,13 @@ class LayersView(QListView):
         selection_model = self.selectionModel()
         selection_model.selectionChanged.connect(self.update_graphics_scene_selection_from_selection_model)
 
-        self.graphics_scene = model.graphics_scene
+        self.graphics_scene = model._scene
         self.graphics_scene.selectionChanged.connect(self.update_selection_model_selection_from_graphics_scene)
         self.graphics_scene.itemInserted.connect(self.update_selection_model_selection_from_graphics_scene)
 
     def update_graphics_scene_selection_from_selection_model(self, selected: QItemSelection,
                                                              unselected: QItemSelection):
+        # TODO: refactor this by subclassing a QItemSelectionModel?
         for index in selected.indexes():
             item = self.graphics_scene.items()[index.row()]
             if not item.isSelected():

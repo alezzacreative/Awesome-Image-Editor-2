@@ -3,7 +3,10 @@ from pathlib import Path
 
 from PySide6.QtCore import (
     QStandardPaths,
-    Qt
+    Qt,
+    QFile,
+    QIODevice,
+    QDataStream
 )
 from PySide6.QtGui import QPainter, QImage
 from PySide6.QtWidgets import (
@@ -17,7 +20,7 @@ from PySide6.QtWidgets import (
 )
 
 from .dialogs.gaussian_blur import GaussianBlurDialog
-from .widgets.graphics_scene import GraphicsSceneModel, QGraphicsImageItem
+from .widgets.graphics_scene import GraphicsSceneModel, QGraphicsImageItem, CustomGraphicsScene
 from .widgets.layers import LayersView
 
 __all__ = ("MainWindow",)
@@ -28,8 +31,8 @@ class MainWindow(QMainWindow):
         super().__init__()
         self.setWindowTitle("Awesome Image Editor")
 
-        self.graphics_scene_model = GraphicsSceneModel()
-        self.graphics_scene = self.graphics_scene_model.graphics_scene
+        self.graphics_scene = CustomGraphicsScene()
+        self.graphics_scene_model = GraphicsSceneModel(self.graphics_scene)
         self.graphics_view = QGraphicsView(self.graphics_scene)
         self.graphics_view.setDragMode(QGraphicsView.RubberBandDrag)
         self.setCentralWidget(self.graphics_view)
@@ -37,12 +40,12 @@ class MainWindow(QMainWindow):
         self.setup_file_menu()
         self.setup_filters_menu()
 
-        layers_widget = LayersView(self.graphics_scene_model)
-        dock_widget = QDockWidget()
-        dock_widget.setWindowTitle("Layers")
-        dock_widget.setWidget(layers_widget)
+        self.layers_widget = LayersView(self.graphics_scene_model)
+        self.layers_dock_widget = QDockWidget()
+        self.layers_dock_widget.setWindowTitle("Layers")
+        self.layers_dock_widget.setWidget(self.layers_widget)
         self.addDockWidget(
-            Qt.DockWidgetArea.RightDockWidgetArea, dock_widget, Qt.Orientation.Vertical
+            Qt.DockWidgetArea.RightDockWidgetArea, self.layers_dock_widget, Qt.Orientation.Vertical
         )
 
         # TODO: toolbar with tools
@@ -61,6 +64,54 @@ class MainWindow(QMainWindow):
         # self.addToolBar(Qt.LeftToolBarArea, toolbar)
 
         self.showMaximized()
+
+    def open_project(self):
+        filepath, chosen_filter = QFileDialog.getOpenFileName(
+            self,
+            "Open",
+            QStandardPaths.writableLocation(
+                QStandardPaths.StandardLocation.PicturesLocation
+            ),
+            "Awesome Image Editor Project (*.aie)",
+        )
+        if not filepath:
+            return
+
+        file = QFile(filepath)
+        file.open(QIODevice.ReadOnly)
+        data_stream = QDataStream(file)
+        chunk_type = data_stream.readString()
+        assert chunk_type == CustomGraphicsScene.CHUNK_TYPE
+
+        # TODO: refactor and allow loading multiple projects at once
+        # and switching between them via tabs
+        scene = CustomGraphicsScene.deserialize(data_stream)
+
+        self.graphics_scene_model = GraphicsSceneModel(scene)
+        self.graphics_scene = scene
+        self.graphics_view = QGraphicsView(self.graphics_scene)
+        self.graphics_view.setDragMode(QGraphicsView.RubberBandDrag)
+        self.setCentralWidget(self.graphics_view)
+
+        self.layers_widget = LayersView(self.graphics_scene_model)
+        self.layers_dock_widget.setWidget(self.layers_widget)
+
+    def save_as_project(self):
+        filepath, chosen_filter = QFileDialog.getSaveFileName(
+            self,
+            "Save as",
+            QStandardPaths.writableLocation(
+                QStandardPaths.StandardLocation.PicturesLocation
+            ),
+            "Awesome Image Editor Project (*.aie)",
+        )
+        if not filepath:
+            return
+
+        file = QFile(filepath)
+        file.open(QIODevice.WriteOnly)
+        data_stream = QDataStream(file)
+        self.graphics_scene.serialize(data_stream)
 
     def open_image(self):
         filepath, chosen_filter = QFileDialog.getOpenFileName(
@@ -139,7 +190,11 @@ class MainWindow(QMainWindow):
 
     def setup_file_menu(self):
         menu = QMenu("File", self)
+        menu.addAction("Open", self.open_project)
         menu.addAction("Open Image", self.open_image)
+        menu.addSeparator()
+        menu.addAction("Save as", self.save_as_project)
+        menu.addSeparator()
         menu.addAction("Save Image", self.save_image)
         self.menuBar().addMenu(menu)
 
