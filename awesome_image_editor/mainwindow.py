@@ -20,8 +20,8 @@ from PySide6.QtWidgets import (
 )
 
 from .dialogs.gaussian_blur import GaussianBlurDialog
-from .widgets.graphics_scene import GraphicsSceneModel, QGraphicsImageItem, CustomGraphicsScene
-from .widgets.layers_list_view import LayersView
+from .graphics_scene.list_view import QGraphicsListView
+from .graphics_scene.model import QGraphicsSceneModel, QGraphicsImageItem, QGraphicsSceneCustom
 
 __all__ = ("MainWindow",)
 
@@ -31,8 +31,8 @@ class MainWindow(QMainWindow):
         super().__init__()
         self.setWindowTitle("Awesome Image Editor")
 
-        self.graphics_scene = CustomGraphicsScene()
-        self.graphics_scene_model = GraphicsSceneModel(self.graphics_scene)
+        self.graphics_scene = QGraphicsSceneCustom()
+        self.graphics_scene_model = QGraphicsSceneModel(self.graphics_scene)
         self.graphics_view = QGraphicsView(self.graphics_scene)
         self.graphics_view.setDragMode(QGraphicsView.RubberBandDrag)
         self.setCentralWidget(self.graphics_view)
@@ -40,7 +40,7 @@ class MainWindow(QMainWindow):
         self.setup_file_menu()
         self.setup_filters_menu()
 
-        self.layers_widget = LayersView(self.graphics_scene_model)
+        self.layers_widget = QGraphicsListView(self.graphics_scene_model)
         self.layers_dock_widget = QDockWidget()
         self.layers_dock_widget.setWindowTitle("Layers")
         self.layers_dock_widget.setWidget(self.layers_widget)
@@ -81,19 +81,19 @@ class MainWindow(QMainWindow):
         file.open(QIODevice.ReadOnly)
         data_stream = QDataStream(file)
         chunk_type = data_stream.readString()
-        assert chunk_type == CustomGraphicsScene.CHUNK_TYPE
+        assert chunk_type == QGraphicsSceneCustom.CHUNK_TYPE
 
         # TODO: refactor and allow loading multiple projects at once
         # and switching between them via tabs
-        scene = CustomGraphicsScene.deserialize(data_stream)
+        scene = QGraphicsSceneCustom.deserialize(data_stream)
 
-        self.graphics_scene_model = GraphicsSceneModel(scene)
+        self.graphics_scene_model = QGraphicsSceneModel(scene)
         self.graphics_scene = scene
         self.graphics_view = QGraphicsView(self.graphics_scene)
         self.graphics_view.setDragMode(QGraphicsView.RubberBandDrag)
         self.setCentralWidget(self.graphics_view)
 
-        self.layers_widget = LayersView(self.graphics_scene_model)
+        self.layers_widget = QGraphicsListView(self.graphics_scene_model)
         self.layers_dock_widget.setWidget(self.layers_widget)
 
     def save_as_project(self):
