@@ -21,7 +21,7 @@ from PySide6.QtWidgets import (
 
 from .dialogs.gaussian_blur import GaussianBlurDialog
 from .widgets.graphics_scene import GraphicsSceneModel, QGraphicsImageItem, CustomGraphicsScene
-from .widgets.layers import LayersView
+from .widgets.layers_list_view import LayersView
 
 __all__ = ("MainWindow",)
 
