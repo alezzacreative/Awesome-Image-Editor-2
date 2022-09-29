@@ -18,6 +18,7 @@ from PySide6.QtWidgets import (
     QMessageBox,
     QGraphicsBlurEffect
 )
+from psd_tools import PSDImage
 
 from .dialogs.gaussian_blur import GaussianBlurDialog
 from .graphics_scene.model import QGraphicsSceneModel, QGraphicsImageItem, QGraphicsSceneCustom
@@ -188,9 +189,41 @@ class MainWindow(QMainWindow):
 
         dlg.show()
 
+    def read_psd_as_project(self):
+        filepath, chosen_filter = QFileDialog.getOpenFileName(
+            self,
+            "Open Image",
+            QStandardPaths.writableLocation(
+                QStandardPaths.StandardLocation.PicturesLocation
+            ),
+            "Photoshop Files (*.psd)",
+        )
+        if not filepath:
+            return
+        psd = PSDImage.open(filepath)
+        scene = QGraphicsSceneCustom()
+        for layer in psd:
+            if layer.kind == "pixel":
+                image = layer.topil().toqimage()
+                left, top = layer.offset
+                image_name = layer.name
+                item = QGraphicsImageItem(image, image_name)
+                item.setPos(left, top)
+                scene.addItem(item)
+
+        self.graphics_scene_model = QGraphicsSceneModel(scene)
+        self.graphics_scene = scene
+        self.graphics_view = QGraphicsView(self.graphics_scene)
+        self.graphics_view.setDragMode(QGraphicsView.RubberBandDrag)
+        self.setCentralWidget(self.graphics_view)
+
+        self.layers_widget = LayersWidget(self.graphics_scene_model)
+        self.layers_dock_widget.setWidget(self.layers_widget)
+
     def setup_file_menu(self):
         menu = QMenu("File", self)
         menu.addAction("Open", self.open_project)
+        menu.addAction("Open PSD", self.read_psd_as_project)
         menu.addAction("Open Image", self.open_image)
         menu.addSeparator()
         menu.addAction("Save as", self.save_as_project)
