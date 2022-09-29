@@ -48,6 +48,9 @@ class QGraphicsSceneModel(QAbstractListModel):
             lambda: self.beginInsertRows(QModelIndex(), self.rowCount(), self.rowCount()))
         self._scene.itemInserted.connect(lambda: self.endInsertRows())
 
+    def scene(self):
+        return self._scene
+
     def rowCount(self, parent: QModelIndex = ...) -> int:
         return len(self._scene.items())
 

@@ -20,8 +20,8 @@ from PySide6.QtWidgets import (
 )
 
 from .dialogs.gaussian_blur import GaussianBlurDialog
-from .graphics_scene.list_view import QGraphicsListView
 from .graphics_scene.model import QGraphicsSceneModel, QGraphicsImageItem, QGraphicsSceneCustom
+from .widgets.layers import LayersWidget
 
 __all__ = ("MainWindow",)
 
@@ -40,7 +40,7 @@ class MainWindow(QMainWindow):
         self.setup_file_menu()
         self.setup_filters_menu()
 
-        self.layers_widget = QGraphicsListView(self.graphics_scene_model)
+        self.layers_widget = LayersWidget(self.graphics_scene_model)
         self.layers_dock_widget = QDockWidget()
         self.layers_dock_widget.setWindowTitle("Layers")
         self.layers_dock_widget.setWidget(self.layers_widget)
@@ -93,7 +93,7 @@ class MainWindow(QMainWindow):
         self.graphics_view.setDragMode(QGraphicsView.RubberBandDrag)
         self.setCentralWidget(self.graphics_view)
 
-        self.layers_widget = QGraphicsListView(self.graphics_scene_model)
+        self.layers_widget = LayersWidget(self.graphics_scene_model)
         self.layers_dock_widget.setWidget(self.layers_widget)
 
     def save_as_project(self):
