@@ -18,10 +18,10 @@ from PySide6.QtWidgets import (
     QMessageBox,
     QGraphicsBlurEffect
 )
-from psd_tools import PSDImage
 
 from .dialogs.gaussian_blur import GaussianBlurDialog
 from .graphics_scene.model import QGraphicsSceneModel, QGraphicsImageItem, QGraphicsSceneCustom
+from .psd_read import graphics_scene_from_psd
 from .widgets.layers import LayersWidget
 
 __all__ = ("MainWindow",)
@@ -200,20 +200,12 @@ class MainWindow(QMainWindow):
         )
         if not filepath:
             return
-        psd = PSDImage.open(filepath)
-        scene = QGraphicsSceneCustom()
-        for layer in psd:
-            if layer.kind == "pixel":
-                image = layer.topil().toqimage()
-                left, top = layer.offset
-                image_name = layer.name
-                item = QGraphicsImageItem(image, image_name)
-                item.setPos(left, top)
-                scene.addItem(item)
 
+        scene = graphics_scene_from_psd(filepath)
         self.graphics_scene_model = QGraphicsSceneModel(scene)
         self.graphics_scene = scene
         self.graphics_view = QGraphicsView(self.graphics_scene)
+        self.graphics_view.setRenderHint(QPainter.RenderHint.Antialiasing, True)
         self.graphics_view.setDragMode(QGraphicsView.RubberBandDrag)
         self.setCentralWidget(self.graphics_view)
 

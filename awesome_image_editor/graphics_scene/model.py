@@ -58,10 +58,16 @@ class QGraphicsSceneModel(QAbstractListModel):
         if not index.isValid():
             return
 
-        item: QGraphicsImageItem = self._scene.items()[index.row()]  # type: ignore
+        item = self._scene.items()[index.row()]
+
+        if not isinstance(item, QGraphicsImageItem):
+            return
+
         if role == Qt.DisplayRole:
             return item.name
+
         elif role == Qt.DecorationRole:
             return item.image.scaled(LAYER_THUMBNAIL_SIZE, Qt.KeepAspectRatio, Qt.SmoothTransformation)
+
         elif role == Qt.SizeHintRole:
             return LAYER_THUMBNAIL_SIZE
