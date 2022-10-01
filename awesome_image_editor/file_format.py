@@ -2,7 +2,7 @@ import struct
 from typing import BinaryIO
 
 from PyQt6.QtCore import QByteArray, QBuffer, QIODevice, Qt
-from PyQt6.QtGui import QImage
+from PyQt6.QtGui import QImage, QPainter
 from PyQt6.QtWidgets import QGraphicsView
 
 from .graphics_scene.items.image import QGraphicsImageItem
@@ -65,6 +65,7 @@ class AIEProject:
         self.graphics_scene = scene
         self.graphics_scene_model = QGraphicsSceneModel(self.graphics_scene)
         self.graphics_view = QGraphicsView(self.graphics_scene)
+        self.graphics_view.setRenderHint(QPainter.RenderHint.Antialiasing, True)
         self.graphics_view.setDragMode(QGraphicsView.DragMode.RubberBandDrag)
         self.layers_widget = LayersWidget(self.graphics_scene_model)
 
