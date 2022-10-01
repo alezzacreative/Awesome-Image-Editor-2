@@ -19,6 +19,7 @@ from PyQt6.QtWidgets import (
 from .dialogs.gaussian_blur import GaussianBlurDialog
 from .file_format import AIEProject
 from .graphics_scene.model import QGraphicsImageItem, QGraphicsSceneCustom
+from .psd_read import load_project_from_psd
 
 __all__ = ("MainWindow",)
 
@@ -187,16 +188,7 @@ class MainWindow(QMainWindow):
         if not filepath:
             return
 
-        # scene = graphics_scene_from_psd(filepath)
-        # self.graphics_scene_model = QGraphicsSceneModel(scene)
-        # self.graphics_scene = scene
-        # self.graphics_view = QGraphicsView(self.graphics_scene)
-        # self.graphics_view.setRenderHint(QPainter.RenderHint.Antialiasing, True)
-        # self.graphics_view.setDragMode(QGraphicsView.DragMode.RubberBandDrag)
-        # self.setCentralWidget(self.graphics_view)
-        #
-        # self.layers_widget = LayersWidget(self.graphics_scene_model)
-        # self.layers_dock_widget.setWidget(self.layers_widget)
+        self.set_project(load_project_from_psd(filepath))
 
     def setup_file_menu(self):
         menu = QMenu("File", self)

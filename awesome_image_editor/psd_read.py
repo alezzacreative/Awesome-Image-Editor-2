@@ -2,6 +2,7 @@ from PyQt6.QtGui import QPainterPath
 from PyQt6.QtWidgets import QGraphicsPathItem
 from psd_tools import PSDImage
 
+from .file_format import AIEProject
 from .graphics_scene.items.image import QGraphicsImageItem
 from .graphics_scene.model import QGraphicsSceneCustom
 
@@ -60,7 +61,7 @@ def add_shape_layer(scene, layer, psd_width, psd_height):
         scene.addItem(item)
 
 
-def graphics_scene_from_psd(filepath):
+def load_project_from_psd(filepath):
     psd = PSDImage.open(filepath)
     scene = QGraphicsSceneCustom()
     for layer in psd:
@@ -70,4 +71,4 @@ def graphics_scene_from_psd(filepath):
         elif layer.kind == "shape":
             add_shape_layer(scene, layer, psd.width, psd.height)
 
-    return scene
+    return AIEProject(scene)
