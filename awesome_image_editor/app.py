@@ -3,9 +3,9 @@ import platform
 import typing
 from pathlib import PurePath
 
-from PySide6.QtCore import QCoreApplication
-from PySide6.QtGui import QColor, QIcon, QPalette
-from PySide6.QtWidgets import QApplication
+from PyQt6.QtCore import QCoreApplication
+from PyQt6.QtGui import QColor, QIcon, QPalette
+from PyQt6.QtWidgets import QApplication
 
 __all__ = ("Application",)
 

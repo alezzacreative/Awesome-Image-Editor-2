@@ -1,18 +1,15 @@
 import traceback
 from pathlib import Path
+from typing import Optional
 
-from PySide6.QtCore import (
+from PyQt6.QtCore import (
     QStandardPaths,
     Qt,
-    QFile,
-    QIODevice,
-    QDataStream
 )
-from PySide6.QtGui import QPainter, QImage
-from PySide6.QtWidgets import (
+from PyQt6.QtGui import QPainter, QImage
+from PyQt6.QtWidgets import (
     QDockWidget,
     QFileDialog,
-    QGraphicsView,
     QMainWindow,
     QMenu,
     QMessageBox,
@@ -20,9 +17,8 @@ from PySide6.QtWidgets import (
 )
 
 from .dialogs.gaussian_blur import GaussianBlurDialog
-from .graphics_scene.model import QGraphicsSceneModel, QGraphicsImageItem, QGraphicsSceneCustom
-from .psd_read import graphics_scene_from_psd
-from .widgets.layers import LayersWidget
+from .file_format import AIEProject
+from .graphics_scene.model import QGraphicsImageItem, QGraphicsSceneCustom
 
 __all__ = ("MainWindow",)
 
@@ -31,23 +27,18 @@ class MainWindow(QMainWindow):
     def __init__(self):
         super().__init__()
         self.setWindowTitle("Awesome Image Editor")
-
-        self.graphics_scene = QGraphicsSceneCustom()
-        self.graphics_scene_model = QGraphicsSceneModel(self.graphics_scene)
-        self.graphics_view = QGraphicsView(self.graphics_scene)
-        self.graphics_view.setDragMode(QGraphicsView.RubberBandDrag)
-        self.setCentralWidget(self.graphics_view)
-
         self.setup_file_menu()
         self.setup_filters_menu()
 
-        self.layers_widget = LayersWidget(self.graphics_scene_model)
-        self.layers_dock_widget = QDockWidget()
-        self.layers_dock_widget.setWindowTitle("Layers")
-        self.layers_dock_widget.setWidget(self.layers_widget)
+        self._project: Optional[AIEProject] = None
+
+        self.layers_dock_widget = QDockWidget("Layers")
         self.addDockWidget(
             Qt.DockWidgetArea.RightDockWidgetArea, self.layers_dock_widget, Qt.Orientation.Vertical
         )
+
+        scene = QGraphicsSceneCustom()
+        self.set_project(AIEProject(scene))
 
         # TODO: toolbar with tools
         # toolbar = QToolBar()
@@ -66,6 +57,14 @@ class MainWindow(QMainWindow):
 
         self.showMaximized()
 
+    def set_project(self, project: AIEProject):
+        self._project = project
+        self.setCentralWidget(self._project.graphics_view)
+        self.layers_dock_widget.setWidget(self._project.layers_widget)
+
+    def get_project(self):
+        return self._project
+
     def open_project(self):
         filepath, chosen_filter = QFileDialog.getOpenFileName(
             self,
@@ -78,24 +77,8 @@ class MainWindow(QMainWindow):
         if not filepath:
             return
 
-        file = QFile(filepath)
-        file.open(QIODevice.ReadOnly)
-        data_stream = QDataStream(file)
-        chunk_type = data_stream.readString()
-        assert chunk_type == QGraphicsSceneCustom.CHUNK_TYPE
-
-        # TODO: refactor and allow loading multiple projects at once
-        # and switching between them via tabs
-        scene = QGraphicsSceneCustom.deserialize(data_stream)
-
-        self.graphics_scene_model = QGraphicsSceneModel(scene)
-        self.graphics_scene = scene
-        self.graphics_view = QGraphicsView(self.graphics_scene)
-        self.graphics_view.setDragMode(QGraphicsView.RubberBandDrag)
-        self.setCentralWidget(self.graphics_view)
-
-        self.layers_widget = LayersWidget(self.graphics_scene_model)
-        self.layers_dock_widget.setWidget(self.layers_widget)
+        with open(filepath, "rb") as file:
+            self.set_project(AIEProject.deserialize(file))
 
     def save_as_project(self):
         filepath, chosen_filter = QFileDialog.getSaveFileName(
@@ -109,10 +92,11 @@ class MainWindow(QMainWindow):
         if not filepath:
             return
 
-        file = QFile(filepath)
-        file.open(QIODevice.WriteOnly)
-        data_stream = QDataStream(file)
-        self.graphics_scene.serialize(data_stream)
+        if self._project is None:
+            return
+
+        with open(filepath, "wb") as file:
+            self._project.serialize(file)
 
     def open_image(self):
         filepath, chosen_filter = QFileDialog.getOpenFileName(
@@ -128,7 +112,7 @@ class MainWindow(QMainWindow):
         try:
             image = QImage(filepath)
             image_name = Path(filepath).stem
-            self.graphics_scene.addItem(QGraphicsImageItem(image, image_name))
+            self._project.graphics_scene.addItem(QGraphicsImageItem(image, image_name))
         except:
             QMessageBox.critical(self, "Error", traceback.format_exc())
 
@@ -146,16 +130,17 @@ class MainWindow(QMainWindow):
 
         try:
             # Create new empty image to render the scene into
-            self.graphics_scene.setSceneRect(self.graphics_scene.itemsBoundingRect())
+            scene = self._project.graphics_scene
+            scene.setSceneRect(scene.itemsBoundingRect())
             image = QImage(
-                self.graphics_scene.sceneRect().size().toSize(),
+                scene.sceneRect().size().toSize(),
                 QImage.Format.Format_ARGB32_Premultiplied,
             )
             assert image is not None  # In case creation of image fails
             image.fill(Qt.GlobalColor.transparent)
 
             painter = QPainter(image)
-            self.graphics_scene.render(painter)
+            scene.render(painter)
 
             # NOTE: End painter explicitly to fix "QPaintDevice: Cannot destroy paint device that is being painted"
             painter.end()
@@ -164,7 +149,8 @@ class MainWindow(QMainWindow):
             QMessageBox.critical(self, "Error", traceback.format_exc())
 
     def add_gaussian_blur_to_selected_layer(self):
-        if len(self.graphics_scene.selectedItems()) == 0:
+        scene = self._project.graphics_scene
+        if len(scene.selectedItems()) == 0:
             QMessageBox.information(self,
                                     "Warning",
                                     "No selected layers to apply effect, please select at least one layer",
@@ -182,7 +168,7 @@ class MainWindow(QMainWindow):
         effect.setEnabled(dlg.is_preview_enabled())
         effect.setBlurRadius(dlg.get_blur_radius())
 
-        selected_item = self.graphics_scene.selectedItems()[0]
+        selected_item = scene.selectedItems()[0]
         selected_item.setGraphicsEffect(effect)
         dlg.rejected.connect(lambda: selected_item.setGraphicsEffect(None))
         dlg.accepted.connect(lambda: effect.setEnabled(True))
@@ -201,16 +187,16 @@ class MainWindow(QMainWindow):
         if not filepath:
             return
 
-        scene = graphics_scene_from_psd(filepath)
-        self.graphics_scene_model = QGraphicsSceneModel(scene)
-        self.graphics_scene = scene
-        self.graphics_view = QGraphicsView(self.graphics_scene)
-        self.graphics_view.setRenderHint(QPainter.RenderHint.Antialiasing, True)
-        self.graphics_view.setDragMode(QGraphicsView.RubberBandDrag)
-        self.setCentralWidget(self.graphics_view)
-
-        self.layers_widget = LayersWidget(self.graphics_scene_model)
-        self.layers_dock_widget.setWidget(self.layers_widget)
+        # scene = graphics_scene_from_psd(filepath)
+        # self.graphics_scene_model = QGraphicsSceneModel(scene)
+        # self.graphics_scene = scene
+        # self.graphics_view = QGraphicsView(self.graphics_scene)
+        # self.graphics_view.setRenderHint(QPainter.RenderHint.Antialiasing, True)
+        # self.graphics_view.setDragMode(QGraphicsView.DragMode.RubberBandDrag)
+        # self.setCentralWidget(self.graphics_view)
+        #
+        # self.layers_widget = LayersWidget(self.graphics_scene_model)
+        # self.layers_dock_widget.setWidget(self.layers_widget)
 
     def setup_file_menu(self):
         menu = QMenu("File", self)

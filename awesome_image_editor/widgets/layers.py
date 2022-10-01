@@ -1,8 +1,8 @@
 from pathlib import PurePath
 
-from PySide6.QtCore import Qt
-from PySide6.QtGui import QIcon
-from PySide6.QtWidgets import QWidget, QToolBar, QVBoxLayout
+from PyQt6.QtCore import Qt
+from PyQt6.QtGui import QIcon
+from PyQt6.QtWidgets import QWidget, QToolBar, QVBoxLayout
 
 from ..graphics_scene.model import QGraphicsSceneModel
 from ..graphics_scene.view import QGraphicsListView

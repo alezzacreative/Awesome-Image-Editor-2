@@ -1,7 +1,7 @@
 import typing
 
-from PySide6.QtCore import QSize, Signal, QAbstractListModel, QModelIndex, Qt, QDataStream
-from PySide6.QtWidgets import QGraphicsItem, QGraphicsScene
+from PyQt6.QtCore import QSize, pyqtSignal, QAbstractListModel, QModelIndex, Qt
+from PyQt6.QtWidgets import QGraphicsItem, QGraphicsScene
 
 from .items.image import QGraphicsImageItem
 
@@ -9,35 +9,13 @@ LAYER_THUMBNAIL_SIZE = QSize(32, 32)
 
 
 class QGraphicsSceneCustom(QGraphicsScene):
-    CHUNK_TYPE = "LAYERS"
-
-    itemAboutToBeInserted = Signal()
-    itemInserted = Signal()
+    itemAboutToBeInserted = pyqtSignal()
+    itemInserted = pyqtSignal()
 
     def addItem(self, item: QGraphicsItem) -> None:
         self.itemAboutToBeInserted.emit()
         super().addItem(item)
         self.itemInserted.emit()
-
-    def serialize(self, data_stream: QDataStream):
-        data_stream << self.CHUNK_TYPE
-        data_stream.writeUInt64(len(self.items()))
-        for item in self.items():
-            item.serialize(data_stream)
-
-    @staticmethod
-    def deserialize(data_stream: QDataStream):
-        scene = QGraphicsSceneCustom()
-
-        num_items = data_stream.readUInt64()
-        for i in range(num_items):
-            chunk_type = data_stream.readString()
-            assert chunk_type == QGraphicsImageItem.CHUNK_TYPE
-
-            item = QGraphicsImageItem.deserialize(data_stream)
-            scene.addItem(item)
-
-        return scene
 
 
 class QGraphicsSceneModel(QAbstractListModel):
@@ -63,11 +41,12 @@ class QGraphicsSceneModel(QAbstractListModel):
         if not isinstance(item, QGraphicsImageItem):
             return
 
-        if role == Qt.DisplayRole:
+        if role == Qt.ItemDataRole.DisplayRole:
             return item.name
 
-        elif role == Qt.DecorationRole:
-            return item.image.scaled(LAYER_THUMBNAIL_SIZE, Qt.KeepAspectRatio, Qt.SmoothTransformation)
+        elif role == Qt.ItemDataRole.DecorationRole:
+            return item.image.scaled(LAYER_THUMBNAIL_SIZE, Qt.AspectRatioMode.KeepAspectRatio,
+                                     Qt.TransformationMode.SmoothTransformation)
 
-        elif role == Qt.SizeHintRole:
+        elif role == Qt.ItemDataRole.SizeHintRole:
             return LAYER_THUMBNAIL_SIZE

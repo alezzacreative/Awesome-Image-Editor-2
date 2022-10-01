@@ -1,5 +1,5 @@
-from PySide6.QtCore import QModelIndex, QItemSelectionModel, QItemSelection
-from PySide6.QtWidgets import QListView
+from PyQt6.QtCore import QModelIndex, QItemSelectionModel, QItemSelection
+from PyQt6.QtWidgets import QListView
 
 from .model import QGraphicsSceneModel
 
@@ -21,7 +21,7 @@ class QGraphicsListView(QListView):
 
         # self.setDragDropMode(QListView.DragDropMode.InternalMove)
 
-        self.setSelectionMode(QListView.ExtendedSelection)
+        self.setSelectionMode(QListView.SelectionMode.ExtendedSelection)
         self.setModel(model)
 
         # Note: selection model is only available after setting model
@@ -55,5 +55,8 @@ class QGraphicsListView(QListView):
         for i, item in enumerate(self._scene.items()):
             model_index = self.model().index(i, 0, QModelIndex())
             selection_model = self.selectionModel()
-            command = QItemSelectionModel.Select if item.isSelected() else QItemSelectionModel.Deselect
+            if item.isSelected():
+                command = QItemSelectionModel.SelectionFlag.Select
+            else:
+                command = QItemSelectionModel.SelectionFlag.Deselect
             selection_model.select(model_index, command)

@@ -1,6 +1,6 @@
-from PySide6.QtCore import Qt
-from PySide6.QtGui import QValidator
-from PySide6.QtWidgets import (
+from PyQt6.QtCore import Qt
+from PyQt6.QtGui import QValidator
+from PyQt6.QtWidgets import (
     QDialog,
     QVBoxLayout,
     QHBoxLayout,
@@ -33,7 +33,7 @@ class GaussianBlurDialog(QDialog):
     def __init__(self):
         super().__init__()
         self.setWindowTitle("Gaussian Blur")
-        self.setWindowFlag(Qt.WindowContextHelpButtonHint, False)
+        self.setWindowFlag(Qt.WindowType.WindowContextHelpButtonHint, False)
 
         layout = QHBoxLayout()
         self.setLayout(layout)
@@ -87,7 +87,7 @@ class GaussianBlurDialog(QDialog):
 
     def create_slider_widget(self):
         slider = QSlider()
-        slider.setOrientation(Qt.Horizontal)
+        slider.setOrientation(Qt.Orientation.Horizontal)
         slider.setRange(int(self.MIN_RADIUS * 10), int(self.MAX_RADIUS * 10))
         slider.setValue(int(self.DEFAULT_RADIUS * 10))
         return slider

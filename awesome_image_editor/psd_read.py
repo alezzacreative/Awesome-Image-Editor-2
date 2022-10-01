@@ -1,5 +1,5 @@
-from PySide6.QtGui import QPainterPath
-from PySide6.QtWidgets import QGraphicsPathItem
+from PyQt6.QtGui import QPainterPath
+from PyQt6.QtWidgets import QGraphicsPathItem
 from psd_tools import PSDImage
 
 from .graphics_scene.items.image import QGraphicsImageItem
