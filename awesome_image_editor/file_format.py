@@ -1,6 +1,7 @@
+import struct
 from typing import BinaryIO
 
-from PyQt6.QtCore import QByteArray, QBuffer, QIODevice
+from PyQt6.QtCore import QByteArray, QBuffer, QIODevice, Qt
 from PyQt6.QtGui import QImage
 from PyQt6.QtWidgets import QGraphicsView
 
@@ -21,10 +22,8 @@ def write_uint32_le(value: int, file: BinaryIO):
     file.write(data)
 
 
-def read_uint32_le(file: BinaryIO):
-    data = file.read(4)
-    assert len(data) == 4
-    return int.from_bytes(data, "little", signed=False)
+def write_float_le(value: float, file: BinaryIO):
+    file.write(struct.pack("<f", value))
 
 
 def write_pascal_string(string: bytes, file: BinaryIO):
@@ -38,6 +37,12 @@ def write_unicode_string(string: str, file: BinaryIO):
     file.write(data)
 
 
+def read_uint32_le(file: BinaryIO):
+    data = file.read(4)
+    assert len(data) == 4
+    return int.from_bytes(data, "little", signed=False)
+
+
 def read_pascal_string(file: BinaryIO):
     length = read_uint32_le(file)
     return file.read(length)
@@ -47,6 +52,12 @@ def read_unicode_string(file: BinaryIO):
     length = read_uint32_le(file)
     data = file.read(length)
     return data.decode("utf-8")
+
+
+def read_float_le(file: BinaryIO):
+    data = file.read(4)
+    assert len(data) == 4  # struct should already error out, assert for consistency
+    return struct.unpack("<f", data)[0]
 
 
 class AIEProject:
@@ -62,14 +73,22 @@ class AIEProject:
         write_pascal_string(LAYERS_CHUNK_TYPE, file)
         num_layers = len(self.graphics_scene.items())
         write_uint32_le(num_layers, file)
-        for item in self.graphics_scene.items():
+
+        # NOTE: save in back-to-front (AscendingOrder) order to preserve same layer order when importing back
+        # TODO: order independent file format? (e.g. save Z order in file)
+        for item in self.graphics_scene.items(Qt.SortOrder.AscendingOrder):
             if isinstance(item, QGraphicsImageItem):
                 write_pascal_string(IMAGE_CHUNK_TYPE, file)
                 write_unicode_string(item.name, file)
+
+                write_float_le(item.pos().x(), file)
+                write_float_le(item.pos().y(), file)
+
                 byte_array = QByteArray()
                 buffer = QBuffer(byte_array)
                 buffer.open(QIODevice.OpenModeFlag.WriteOnly)
                 item.image.save(buffer, "PNG")
+
                 write_uint32_le(len(byte_array), file)
                 file.write(byte_array.data())
             else:
@@ -91,10 +110,15 @@ class AIEProject:
 
             if chunk_type == IMAGE_CHUNK_TYPE:
                 layer_name = read_unicode_string(file)
+                x = read_float_le(file)
+                y = read_float_le(file)
+
                 image_data_length = read_uint32_le(file)
                 image_data = file.read(image_data_length)
                 image = QImage.fromData(image_data, "PNG")
+
                 item = QGraphicsImageItem(image, layer_name)
+                item.setPos(x, y)
                 scene.addItem(item)
 
         return AIEProject(scene)
