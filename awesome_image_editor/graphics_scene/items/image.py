@@ -6,8 +6,6 @@ from PyQt6.QtWidgets import QGraphicsItem, QStyleOptionGraphicsItem, QWidget
 
 
 class QGraphicsImageItem(QGraphicsItem):
-    CHUNK_TYPE = "IMAGE_LAYER"
-
     def __init__(self, image: QImage, name="Image"):
         super().__init__()
         self.image = image
