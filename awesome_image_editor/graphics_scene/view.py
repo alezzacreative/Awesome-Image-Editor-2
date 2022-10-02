@@ -4,17 +4,6 @@ from PyQt6.QtWidgets import QListView
 from .model import QGraphicsSceneModel
 
 
-# class GraphicsSelectionModel(QItemSelectionModel):
-#     def __init__(self, model: GraphicsSceneModel):
-#         super().__init__(model)
-#
-#     def reset(self) -> None:
-#         super().reset()
-#         model: GraphicsSceneModel = self.model()
-#         model.graphics_scene.clearSelection()
-#     def select(self):
-
-
 class QGraphicsListView(QListView):
     def __init__(self, model: QGraphicsSceneModel):
         super().__init__()
@@ -37,7 +26,6 @@ class QGraphicsListView(QListView):
 
     def update_graphics_scene_selection_from_selection_model(self, selected: QItemSelection,
                                                              unselected: QItemSelection):
-        # TODO: refactor this by subclassing a QItemSelectionModel?
         # FIXME: index out of range when modifying scene
         for index in selected.indexes():
             item = self._scene.items()[index.row()]
