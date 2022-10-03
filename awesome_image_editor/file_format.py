@@ -44,12 +44,15 @@ def read_uint32_le(file: BinaryIO):
 
 def read_pascal_string(file: BinaryIO):
     length = read_uint32_le(file)
-    return file.read(length)
+    string = file.read(length)
+    assert len(string) == length
+    return string
 
 
 def read_unicode_string(file: BinaryIO):
     length = read_uint32_le(file)
     data = file.read(length)
+    assert len(data) == length
     return data.decode("utf-8")
 
 
