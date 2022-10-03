@@ -9,7 +9,7 @@ from .graphics_scene.items.image import QGraphicsImageItem
 from .graphics_scene.model import QGraphicsSceneCustom, TreeModel
 from .widgets.layers import LayersWidget
 
-MAGIC_BYTES = b"\x89AIE\r\n\x1a\n"
+MAGIC_BYTES = b"\x89AIE\r\n\x1a\n"  # Similar to PNG magic bytes
 
 # Chunk Types
 LAYERS_CHUNK_TYPE = b"LAYERS"
