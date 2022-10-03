@@ -14,7 +14,6 @@ MAGIC_BYTES = b"\x89AIE\r\n\x1a\n"
 # Chunk Types
 LAYERS_CHUNK_TYPE = b"LAYERS"
 IMAGE_CHUNK_TYPE = b"IMAGE"
-UNKNOWN_CHUNK_TYPE = b"UNKNOWN"
 
 
 def write_uint32_le(value: int, file: BinaryIO):
@@ -92,8 +91,6 @@ class AIEProject:
 
                 write_uint32_le(len(byte_array), file)
                 file.write(byte_array.data())
-            else:
-                write_pascal_string(UNKNOWN_CHUNK_TYPE, file)
 
     @staticmethod
     def deserialize(file: BinaryIO):
