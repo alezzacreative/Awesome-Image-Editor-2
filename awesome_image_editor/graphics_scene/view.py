@@ -1,24 +1,24 @@
 from PyQt6.QtCore import QModelIndex, QItemSelectionModel, QItemSelection
-from PyQt6.QtWidgets import QListView
+from PyQt6.QtWidgets import QTreeView
 
-from .model import QGraphicsSceneModel
+from .model import QGraphicsSceneCustom, TreeModel
 
 
-class QGraphicsListView(QListView):
-    def __init__(self, model: QGraphicsSceneModel):
+class TreeView(QTreeView):
+    def __init__(self, model: TreeModel):
         super().__init__()
+        self.setHeaderHidden(True)
 
         # self.setDragDropMode(QListView.DragDropMode.InternalMove)
-
-        self.setSelectionMode(QListView.SelectionMode.ExtendedSelection)
+        # self.setSelectionMode(QTreeView.SelectionMode.ExtendedSelection)
         self.setModel(model)
 
         # Note: selection model is only available after setting model
-        selection_model = self.selectionModel()
-        selection_model.selectionChanged.connect(self.update_graphics_scene_selection_from_selection_model)
-
-        self.scene().selectionChanged.connect(self.update_selection_model_selection_from_graphics_scene)
-        self.scene().itemInserted.connect(self.update_selection_model_selection_from_graphics_scene)
+        # selection_model = self.selectionModel()
+        # selection_model.selectionChanged.connect(self.update_graphics_scene_selection_from_selection_model)
+        #
+        # self.scene().selectionChanged.connect(self.update_selection_model_selection_from_graphics_scene)
+        # self.scene().itemInserted.connect(self.update_selection_model_selection_from_graphics_scene)
 
     def scene(self) -> QGraphicsSceneCustom:
         return self.model().scene()

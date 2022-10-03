@@ -6,7 +6,7 @@ from PyQt6.QtGui import QImage, QPainter
 from PyQt6.QtWidgets import QGraphicsView
 
 from .graphics_scene.items.image import QGraphicsImageItem
-from .graphics_scene.model import QGraphicsSceneModel, QGraphicsSceneCustom
+from .graphics_scene.model import QGraphicsSceneCustom, TreeModel
 from .widgets.layers import LayersWidget
 
 MAGIC_BYTES = b"\x89AIE\r\n\x1a\n"
@@ -63,7 +63,7 @@ def read_float_le(file: BinaryIO):
 class AIEProject:
     def __init__(self, scene: QGraphicsSceneCustom):
         self.graphics_scene = scene
-        self.graphics_scene_model = QGraphicsSceneModel(self.graphics_scene)
+        self.graphics_scene_model = TreeModel(self.graphics_scene)
         self.graphics_view = QGraphicsView(self.graphics_scene)
         self.graphics_view.setRenderHint(QPainter.RenderHint.Antialiasing, True)
         self.graphics_view.setDragMode(QGraphicsView.DragMode.RubberBandDrag)

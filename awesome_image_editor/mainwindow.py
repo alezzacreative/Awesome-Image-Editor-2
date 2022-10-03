@@ -18,7 +18,8 @@ from PyQt6.QtWidgets import (
 
 from .dialogs.gaussian_blur import GaussianBlurDialog
 from .file_format import AIEProject
-from .graphics_scene.model import QGraphicsImageItem, QGraphicsSceneCustom
+from .graphics_scene.items.image import QGraphicsImageItem
+from .graphics_scene.model import QGraphicsSceneCustom
 from .psd_read import load_project_from_psd
 
 __all__ = ("MainWindow",)
