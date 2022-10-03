@@ -33,7 +33,7 @@ class QGraphicsTreeItem:
 
     def data(self, role: int):
         if role == Qt.ItemDataRole.DisplayRole:
-            return getattr(self._graphics_item, "name", "FAILED!!")
+            return getattr(self._graphics_item, "name", "FAILED TO GET LAYER NAME!!")
 
         elif role == Qt.ItemDataRole.DecorationRole:
             return getattr(self._graphics_item, "get_thumbnail", lambda: None)()
