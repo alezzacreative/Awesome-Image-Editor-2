@@ -78,7 +78,7 @@ class AIEProject:
         write_uint32_le(num_layers, file)
 
         # NOTE: save in back-to-front (AscendingOrder) order to preserve same layer order when importing back
-        # TODO: order independent file format? (e.g. save Z order in file)
+        # TODO: order independent file format? (e.g. save layer index in file?)
         for item in self.graphics_scene.items(Qt.SortOrder.AscendingOrder):
             if isinstance(item, QGraphicsImageItem):
                 write_pascal_string(IMAGE_CHUNK_TYPE, file)
