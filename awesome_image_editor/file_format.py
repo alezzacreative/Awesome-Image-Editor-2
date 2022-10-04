@@ -63,23 +63,55 @@ def read_float_le(file: BinaryIO):
 
 
 class AIEProject:
-    def __init__(self, scene: QGraphicsSceneCustom):
-        self.graphics_scene = scene
-        self.graphics_scene_model = TreeModel(self.graphics_scene)
-        self.graphics_view = QGraphicsView(self.graphics_scene)
-        self.graphics_view.setRenderHint(QPainter.RenderHint.Antialiasing, True)
-        self.graphics_view.setDragMode(QGraphicsView.DragMode.RubberBandDrag)
-        self.layers_widget = LayersWidget(self.graphics_scene_model)
+    def __init__(self):
+        self._graphics_scene = QGraphicsSceneCustom()
+        self._graphics_scene_model = TreeModel(self._graphics_scene)
+        self._graphics_view = QGraphicsView(self._graphics_scene)
+        self._graphics_view.setRenderHint(QPainter.RenderHint.Antialiasing, True)
+        self._graphics_view.setDragMode(QGraphicsView.DragMode.RubberBandDrag)
+        self._layers_widget = LayersWidget(self._graphics_scene_model)
+
+    def add_image_layer(self, image: QImage, layer_name: str):
+        self._graphics_scene.addItem(QGraphicsImageItem(image, layer_name))
+
+    def get_layers_widget(self):
+        return self._layers_widget
+
+    def get_graphics_view(self):
+        return self._graphics_view
+
+    def get_graphics_scene(self):
+        return self._graphics_scene
+
+    def render(self):
+        scene = self._graphics_scene
+        # Fit scene to items
+        scene.setSceneRect(scene.itemsBoundingRect())
+
+        # Create new empty image to render the scene into
+        image = QImage(
+            scene.sceneRect().size().toSize(),
+            QImage.Format.Format_ARGB32_Premultiplied,
+        )
+        assert image is not None  # In case creation of image fails
+        image.fill(Qt.GlobalColor.transparent)
+
+        painter = QPainter(image)
+        scene.render(painter)
+        # NOTE: End painter explicitly to fix "QPaintDevice: Cannot destroy paint device that is being painted"
+        painter.end()
+
+        return image
 
     def serialize(self, file: BinaryIO):
         file.write(MAGIC_BYTES)
         write_pascal_string(LAYERS_CHUNK_TYPE, file)
-        num_layers = len(self.graphics_scene.items())
+        num_layers = len(self._graphics_scene.items())
         write_uint32_le(num_layers, file)
 
         # NOTE: save in back-to-front (AscendingOrder) order to preserve same layer order when importing back
         # TODO: order independent file format? (e.g. save layer index in file?)
-        for item in self.graphics_scene.items(Qt.SortOrder.AscendingOrder):
+        for item in self._graphics_scene.items(Qt.SortOrder.AscendingOrder):
             if isinstance(item, QGraphicsImageItem):
                 write_pascal_string(IMAGE_CHUNK_TYPE, file)
                 write_unicode_string(item.name, file)
@@ -103,7 +135,8 @@ class AIEProject:
         chunk_type = read_pascal_string(file)
         assert chunk_type == LAYERS_CHUNK_TYPE
 
-        scene = QGraphicsSceneCustom()
+        project = AIEProject()
+        scene = project.get_graphics_scene()
         num_layers = read_uint32_le(file)
 
         for i in range(num_layers):
@@ -122,4 +155,4 @@ class AIEProject:
                 item.setPos(x, y)
                 scene.addItem(item)
 
-        return AIEProject(scene)
+        return project

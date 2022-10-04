@@ -4,7 +4,6 @@ from psd_tools import PSDImage
 
 from .file_format import AIEProject
 from .graphics_scene.items.image import QGraphicsImageItem
-from .graphics_scene.model import QGraphicsSceneCustom
 
 
 def add_pixel_layer(scene, layer):
@@ -63,7 +62,9 @@ def add_shape_layer(scene, layer, psd_width, psd_height):
 
 def load_project_from_psd(filepath):
     psd = PSDImage.open(filepath)
-    scene = QGraphicsSceneCustom()
+
+    project = AIEProject()
+    scene = project.get_graphics_scene()
     for layer in psd:
         if layer.kind == "pixel":
             add_pixel_layer(scene, layer)
@@ -71,4 +72,4 @@ def load_project_from_psd(filepath):
         elif layer.kind == "shape":
             add_shape_layer(scene, layer, psd.width, psd.height)
 
-    return AIEProject(scene)
+    return project

@@ -1,12 +1,11 @@
 import traceback
 from pathlib import Path
-from typing import Optional
 
 from PyQt6.QtCore import (
     QStandardPaths,
     Qt,
 )
-from PyQt6.QtGui import QPainter, QImage
+from PyQt6.QtGui import QImage
 from PyQt6.QtWidgets import (
     QDockWidget,
     QFileDialog,
@@ -18,8 +17,6 @@ from PyQt6.QtWidgets import (
 
 from .dialogs.gaussian_blur import GaussianBlurDialog
 from .file_format import AIEProject
-from .graphics_scene.items.image import QGraphicsImageItem
-from .graphics_scene.model import QGraphicsSceneCustom
 from .psd_read import load_project_from_psd
 
 __all__ = ("MainWindow",)
@@ -32,15 +29,14 @@ class MainWindow(QMainWindow):
         self.setup_file_menu()
         self.setup_filters_menu()
 
-        self._project: Optional[AIEProject] = None
-
         self.layers_dock_widget = QDockWidget("Layers")
         self.addDockWidget(
             Qt.DockWidgetArea.RightDockWidgetArea, self.layers_dock_widget, Qt.Orientation.Vertical
         )
 
-        scene = QGraphicsSceneCustom()
-        self.set_project(AIEProject(scene))
+        self._project = AIEProject()
+        self.setCentralWidget(self._project.get_graphics_view())
+        self.layers_dock_widget.setWidget(self._project.get_layers_widget())
 
         # TODO: toolbar with tools
         # toolbar = QToolBar()
@@ -61,8 +57,8 @@ class MainWindow(QMainWindow):
 
     def set_project(self, project: AIEProject):
         self._project = project
-        self.setCentralWidget(self._project.graphics_view)
-        self.layers_dock_widget.setWidget(self._project.layers_widget)
+        self.setCentralWidget(self._project.get_graphics_view())
+        self.layers_dock_widget.setWidget(self._project.get_layers_widget())
 
     def get_project(self):
         return self._project
@@ -114,7 +110,7 @@ class MainWindow(QMainWindow):
         try:
             image = QImage(filepath)
             image_name = Path(filepath).stem
-            self._project.graphics_scene.addItem(QGraphicsImageItem(image, image_name))
+            self._project.add_image_layer(image, image_name)
         except:
             QMessageBox.critical(self, "Error", traceback.format_exc())
 
@@ -131,27 +127,13 @@ class MainWindow(QMainWindow):
             return
 
         try:
-            # Create new empty image to render the scene into
-            scene = self._project.graphics_scene
-            scene.setSceneRect(scene.itemsBoundingRect())
-            image = QImage(
-                scene.sceneRect().size().toSize(),
-                QImage.Format.Format_ARGB32_Premultiplied,
-            )
-            assert image is not None  # In case creation of image fails
-            image.fill(Qt.GlobalColor.transparent)
-
-            painter = QPainter(image)
-            scene.render(painter)
-
-            # NOTE: End painter explicitly to fix "QPaintDevice: Cannot destroy paint device that is being painted"
-            painter.end()
+            image = self._project.render()
             image.save(filepath)
         except:
             QMessageBox.critical(self, "Error", traceback.format_exc())
 
     def add_gaussian_blur_to_selected_layer(self):
-        scene = self._project.graphics_scene
+        scene = self._project.get_graphics_scene()
         if len(scene.selectedItems()) == 0:
             QMessageBox.information(self,
                                     "Warning",
