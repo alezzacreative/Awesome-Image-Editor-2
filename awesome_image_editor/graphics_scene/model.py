@@ -1,23 +1,23 @@
 from typing import Optional
 
-from PyQt6.QtCore import pyqtSignal, QAbstractListModel, QModelIndex, Qt, QAbstractItemModel
+from PyQt6.QtCore import pyqtSignal, QModelIndex, Qt, QAbstractItemModel
 from PyQt6.QtWidgets import QGraphicsItem, QGraphicsScene
 
 from .items.base import BaseGraphicsItem
 
 
 class QGraphicsSceneCustom(QGraphicsScene):
-    itemAboutToBeInserted = pyqtSignal()
-    itemInserted = pyqtSignal()
+    itemAboutToBeAppended = pyqtSignal()
+    itemAppended = pyqtSignal(QGraphicsItem)
 
     def addItem(self, item: QGraphicsItem) -> None:
-        self.itemAboutToBeInserted.emit()
+        self.itemAboutToBeAppended.emit()
         super().addItem(item)
-        self.itemInserted.emit()
+        self.itemAppended.emit(item)
 
 
 class QGraphicsTreeItem:
-    def __init__(self, graphics_item: Optional[BaseGraphicsItem], parent: "QGraphicsTreeItem" = None):
+    def __init__(self, graphics_item: Optional[BaseGraphicsItem], parent: Optional["QGraphicsTreeItem"]):
         self._parent = parent
         self._graphics_item = graphics_item
         self.childItems = []
@@ -55,9 +55,17 @@ class TreeModel(QAbstractItemModel):
     def __init__(self, scene: QGraphicsSceneCustom, parent=None):
         super(TreeModel, self).__init__(parent)
 
-        self.rootItem = QGraphicsTreeItem(None)
+        self.rootItem = QGraphicsTreeItem(None, None)
         for item in scene.items():
             self.rootItem.append_child(QGraphicsTreeItem(item, self.rootItem))
+
+        scene.itemAboutToBeAppended.connect(
+            lambda: self.beginInsertRows(QModelIndex(), self.rootItem.child_count(), self.rootItem.child_count()))
+        scene.itemAppended.connect(self.item_appended)
+
+    def item_appended(self, item):
+        self.rootItem.append_child(QGraphicsTreeItem(item, self.rootItem))
+        self.endInsertRows()
 
     def columnCount(self, parent: QModelIndex = ...):
         return 1
@@ -111,12 +119,3 @@ class TreeModel(QAbstractItemModel):
             parent_item = parent.internalPointer()
 
         return parent_item.child_count()
-
-
-class QGraphicsSceneModel(QAbstractListModel):
-    def __init__(self, scene: QGraphicsSceneCustom) -> None:
-        super().__init__()
-        self._scene = scene
-        self._scene.itemAboutToBeInserted.connect(
-            lambda: self.beginInsertRows(QModelIndex(), self.rowCount(), self.rowCount()))
-        self._scene.itemInserted.connect(lambda: self.endInsertRows())
