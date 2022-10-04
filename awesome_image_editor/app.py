@@ -1,7 +1,7 @@
 import ctypes
 import platform
-import typing
 from pathlib import PurePath
+from typing import List
 
 from PyQt6.QtCore import QCoreApplication
 from PyQt6.QtGui import QColor, QIcon, QPalette
@@ -11,8 +11,8 @@ __all__ = ("Application",)
 
 
 class Application(QApplication):
-    def __init__(self, arg__1: typing.Sequence) -> None:
-        super().__init__(arg__1)
+    def __init__(self, argv: List[str]):
+        super().__init__(argv)
 
         # Fixes app icon not displayed in Windows taskbar
         if platform.system() == "Windows":
