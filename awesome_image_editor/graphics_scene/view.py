@@ -1,11 +1,12 @@
 from PyQt6.QtCore import QModelIndex, QItemSelectionModel, QItemSelection
 from PyQt6.QtWidgets import QTreeView
 
-from .model import QGraphicsSceneCustom, TreeModel
+from .custom_graphics_scene import QGraphicsSceneCustom
+from .tree_model import QGraphicsTreeModel
 
 
 class TreeView(QTreeView):
-    def __init__(self, model: TreeModel):
+    def __init__(self, model: QGraphicsTreeModel):
         super().__init__()
         self.setHeaderHidden(True)
 

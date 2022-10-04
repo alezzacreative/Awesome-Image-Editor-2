@@ -4,12 +4,12 @@ from PyQt6.QtCore import Qt
 from PyQt6.QtGui import QIcon
 from PyQt6.QtWidgets import QWidget, QToolBar, QVBoxLayout
 
-from ..graphics_scene.model import TreeModel
+from ..graphics_scene.tree_model import QGraphicsTreeModel
 from ..graphics_scene.view import TreeView
 
 
 class LayersWidget(QWidget):
-    def __init__(self, model: TreeModel):
+    def __init__(self, model: QGraphicsTreeModel):
         super().__init__()
         self.list_view = TreeView(model)
         self.layout = QVBoxLayout()

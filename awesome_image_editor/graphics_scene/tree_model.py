@@ -1,59 +1,12 @@
-from typing import Optional
+from PyQt6.QtCore import QModelIndex, Qt, QAbstractItemModel
 
-from PyQt6.QtCore import pyqtSignal, QModelIndex, Qt, QAbstractItemModel
-from PyQt6.QtWidgets import QGraphicsItem, QGraphicsScene
-
-from .items.base import BaseGraphicsItem
+from .custom_graphics_scene import QGraphicsSceneCustom
+from .tree_item import QGraphicsTreeItem
 
 
-class QGraphicsSceneCustom(QGraphicsScene):
-    itemAboutToBeAppended = pyqtSignal()
-    itemAppended = pyqtSignal(QGraphicsItem)
-
-    def addItem(self, item: QGraphicsItem) -> None:
-        self.itemAboutToBeAppended.emit()
-        super().addItem(item)
-        self.itemAppended.emit(item)
-
-
-class QGraphicsTreeItem:
-    def __init__(self, graphics_item: Optional[BaseGraphicsItem], parent: Optional["QGraphicsTreeItem"]):
-        self._parent = parent
-        self._graphics_item = graphics_item
-        self.childItems = []
-
-    def append_child(self, item):
-        self.childItems.append(item)
-
-    def child(self, row):
-        return self.childItems[row]
-
-    def child_count(self):
-        return len(self.childItems)
-
-    def data(self, role: int):
-        if role == Qt.ItemDataRole.DisplayRole:
-            return getattr(self._graphics_item, "name", "FAILED TO GET LAYER NAME!!")
-
-        elif role == Qt.ItemDataRole.DecorationRole:
-            return getattr(self._graphics_item, "get_thumbnail", lambda: None)()
-
-        elif role == Qt.ItemDataRole.SizeHintRole:
-            return getattr(self._graphics_item, "get_size_hint", lambda: None)()
-
-    def parent(self):
-        return self._parent
-
-    def row(self):
-        if self._parent:
-            return self._parent.childItems.index(self)
-
-        return 0
-
-
-class TreeModel(QAbstractItemModel):
+class QGraphicsTreeModel(QAbstractItemModel):
     def __init__(self, scene: QGraphicsSceneCustom, parent=None):
-        super(TreeModel, self).__init__(parent)
+        super(QGraphicsTreeModel, self).__init__(parent)
 
         self.rootItem = QGraphicsTreeItem(None, None)
         for item in scene.items():
