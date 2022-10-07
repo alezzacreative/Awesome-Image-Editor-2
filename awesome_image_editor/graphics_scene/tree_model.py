@@ -7,12 +7,16 @@ from .tree_item import TreeItemDataProtocol, TreeItem
 class TreeModel(QAbstractItemModel):
     def __init__(self, scene: AIEGraphicsScene, parent=None):
         super().__init__(parent)
-
+        self._scene = scene
         self.root_item = TreeItem(None, None)
+
         for item in scene.items():
             self.root_item.append_child(TreeItem(item, self.root_item))
 
         scene.itemAppended.connect(self.append_item)
+
+    def scene(self):
+        return self._scene
 
     def append_item(self, item: TreeItemDataProtocol):
         self.beginInsertRows(QModelIndex(), self.root_item.child_count(), self.root_item.child_count())
@@ -27,6 +31,11 @@ class TreeModel(QAbstractItemModel):
             return None
         item: TreeItem = index.internalPointer()
         return item.data(role)
+
+    def setData(self, index: QModelIndex, value, role: int = ...):
+        if index.isValid():
+            item: TreeItem = index.internalPointer()
+            item.setData(role, value)
 
     def flags(self, index):
         if not index.isValid():
@@ -61,7 +70,7 @@ class TreeModel(QAbstractItemModel):
 
         return self.createIndex(parent_item.row(), 0, parent_item)
 
-    def rowCount(self, parent: QModelIndex = ...):
+    def rowCount(self, parent=QModelIndex()):
         if parent.column() > 0:
             return 0
 
