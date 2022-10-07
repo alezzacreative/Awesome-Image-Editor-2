@@ -3,8 +3,7 @@ from PyQt6.QtGui import QPainter
 from PyQt6.QtWidgets import QGraphicsScene, QGraphicsItem
 
 
-class QGraphicsSceneCustom(QGraphicsScene):
-    itemAboutToBeAppended = pyqtSignal()
+class AIEGraphicsScene(QGraphicsScene):
     itemAppended = pyqtSignal(QGraphicsItem)
 
     def __init__(self):
@@ -13,7 +12,6 @@ class QGraphicsSceneCustom(QGraphicsScene):
         self.changed.connect(self.update)
 
     def addItem(self, item: QGraphicsItem) -> None:
-        self.itemAboutToBeAppended.emit()
         super().addItem(item)
         self.itemAppended.emit(item)
 

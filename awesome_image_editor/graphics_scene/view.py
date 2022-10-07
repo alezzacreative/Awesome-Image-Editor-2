@@ -1,12 +1,12 @@
 from PyQt6.QtCore import QModelIndex, QItemSelectionModel, QItemSelection
 from PyQt6.QtWidgets import QTreeView
 
-from .custom_graphics_scene import QGraphicsSceneCustom
-from .tree_model import QGraphicsTreeModel
+from .graphics_scene import AIEGraphicsScene
+from .tree_model import TreeModel
 
 
 class TreeView(QTreeView):
-    def __init__(self, model: QGraphicsTreeModel):
+    def __init__(self, model: TreeModel):
         super().__init__()
         self.setHeaderHidden(True)
 
@@ -21,7 +21,7 @@ class TreeView(QTreeView):
         # self.scene().selectionChanged.connect(self.update_selection_model_selection_from_graphics_scene)
         # self.scene().itemInserted.connect(self.update_selection_model_selection_from_graphics_scene)
 
-    def scene(self) -> QGraphicsSceneCustom:
+    def scene(self) -> AIEGraphicsScene:
         return self.model().scene()
 
     def update_graphics_scene_selection_from_selection_model(self, selected: QItemSelection,

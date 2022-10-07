@@ -1,9 +1,9 @@
 from PyQt6.QtGui import QPainterPath
-from PyQt6.QtWidgets import QGraphicsPathItem
 from psd_tools import PSDImage
 
 from .file_format import AIEProject
-from .graphics_scene.items.image import QGraphicsImageItem
+from .graphics_scene.items.image import AIEImageItem
+from .graphics_scene.items.shape import AIEShapeItem
 
 
 def add_pixel_layer(scene, layer):
@@ -11,7 +11,7 @@ def add_pixel_layer(scene, layer):
     image = layer.topil().toqimage()
     left, top = layer.offset
     image_name = layer.name
-    item = QGraphicsImageItem(image, image_name)
+    item = AIEImageItem(image, image_name)
     item.setPos(left, top)
     scene.addItem(item)
 
@@ -42,7 +42,7 @@ def add_shape_layer(scene, layer, psd_width, psd_height):
     # https://doc.qt.io/qt-5/qpainterpath.html
     # https://psd-tools.readthedocs.io/en/latest/reference/psd_tools.api.shape.html#psd_tools.api.shape.VectorMask.paths
     left, top = layer.offset
-    image_name = layer.name
+    layer_name = layer.name
     for subpath in layer.vector_mask.paths:
         num_knots = len(subpath)
         if num_knots == 0:
@@ -56,7 +56,7 @@ def add_shape_layer(scene, layer, psd_width, psd_height):
         if subpath.is_closed():
             _connect_knots_cubic(qpath, subpath[-1], subpath[0], psd_width, psd_height)
 
-        item = QGraphicsPathItem(qpath)
+        item = AIEShapeItem(qpath, layer_name)
         scene.addItem(item)
 
 

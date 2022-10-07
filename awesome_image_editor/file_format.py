@@ -5,9 +5,9 @@ from PyQt6.QtCore import QByteArray, QBuffer, QIODevice, Qt
 from PyQt6.QtGui import QImage, QPainter
 from PyQt6.QtWidgets import QGraphicsView
 
-from .graphics_scene.custom_graphics_scene import QGraphicsSceneCustom
-from .graphics_scene.items.image import QGraphicsImageItem
-from .graphics_scene.tree_model import QGraphicsTreeModel
+from .graphics_scene.graphics_scene import AIEGraphicsScene
+from .graphics_scene.items.image import AIEImageItem
+from .graphics_scene.tree_model import TreeModel
 from .widgets.layers import LayersWidget
 
 MAGIC_BYTES = b"\x89AIE\r\n\x1a\n"  # Similar to PNG magic bytes
@@ -65,15 +65,15 @@ def read_float_le(file: BinaryIO):
 
 class AIEProject:
     def __init__(self):
-        self._graphics_scene = QGraphicsSceneCustom()
-        self._graphics_scene_model = QGraphicsTreeModel(self._graphics_scene)
+        self._graphics_scene = AIEGraphicsScene()
+        self._graphics_scene_model = TreeModel(self._graphics_scene)
         self._graphics_view = QGraphicsView(self._graphics_scene)
         self._graphics_view.setRenderHint(QPainter.RenderHint.Antialiasing, True)
         self._graphics_view.setDragMode(QGraphicsView.DragMode.RubberBandDrag)
         self._layers_widget = LayersWidget(self._graphics_scene_model)
 
     def add_image_layer(self, image: QImage, layer_name: str):
-        self._graphics_scene.addItem(QGraphicsImageItem(image, layer_name))
+        self._graphics_scene.addItem(AIEImageItem(image, layer_name))
 
     def get_layers_widget(self):
         return self._layers_widget
@@ -113,7 +113,7 @@ class AIEProject:
         # NOTE: save in back-to-front (AscendingOrder) order to preserve same layer order when importing back
         # TODO: order independent file format? (e.g. save layer index in file?)
         for item in self._graphics_scene.items(Qt.SortOrder.AscendingOrder):
-            if isinstance(item, QGraphicsImageItem):
+            if isinstance(item, AIEImageItem):
                 write_pascal_string(IMAGE_CHUNK_TYPE, file)
                 write_unicode_string(item.name, file)
 
@@ -152,7 +152,7 @@ class AIEProject:
                 image_data = file.read(image_data_length)
                 image = QImage.fromData(image_data, "PNG")
 
-                item = QGraphicsImageItem(image, layer_name)
+                item = AIEImageItem(image, layer_name)
                 item.setPos(x, y)
                 scene.addItem(item)
 

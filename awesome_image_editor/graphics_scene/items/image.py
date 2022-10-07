@@ -2,17 +2,18 @@ from typing import Optional
 
 from PyQt6.QtCore import QRectF, QSize, Qt
 from PyQt6.QtGui import QPainter, QImage
-from PyQt6.QtWidgets import QStyleOptionGraphicsItem, QWidget
-
-from .base import BaseGraphicsItem
+from PyQt6.QtWidgets import QStyleOptionGraphicsItem, QWidget, QGraphicsItem
 
 THUMBNAIL_SIZE = QSize(32, 32)
 
 
-class QGraphicsImageItem(BaseGraphicsItem):
-    def __init__(self, image: QImage, name, parent: BaseGraphicsItem = None):
-        super().__init__(name, parent)
+class AIEImageItem(QGraphicsItem):
+    def __init__(self, image: QImage, name: str):
+        super().__init__()
+        self.name = name
         self.image = image
+        self.setFlag(QGraphicsItem.GraphicsItemFlag.ItemIsSelectable, True)
+        self.setFlag(QGraphicsItem.GraphicsItemFlag.ItemIsMovable, True)
 
     def get_thumbnail(self):
         return self.image.scaled(THUMBNAIL_SIZE, Qt.AspectRatioMode.KeepAspectRatio,

@@ -1,40 +1,51 @@
 from typing import Optional
+from typing import Protocol, Union
 
-from PyQt6.QtCore import Qt
+from PyQt6.QtCore import Qt, QSize
+from PyQt6.QtGui import QImage
 
-from .items.base import BaseGraphicsItem
+
+class TreeItemDataProtocol(Protocol):
+    name: str
+
+    def get_thumbnail(self) -> Union[QImage]: ...
+
+    def get_size_hint(self) -> QSize: ...
 
 
-class QGraphicsTreeItem:
-    def __init__(self, graphics_item: Optional[BaseGraphicsItem], parent: Optional["QGraphicsTreeItem"]):
+class TreeItem:
+    def __init__(self, data: Optional[TreeItemDataProtocol], parent: Optional["TreeItem"]):
         self._parent = parent
-        self._graphics_item = graphics_item
-        self.childItems = []
+        self._graphics_item = data
+        self.child_items = []
 
     def append_child(self, item):
-        self.childItems.append(item)
+        self.child_items.append(item)
 
     def child(self, row):
-        return self.childItems[row]
+        return self.child_items[row]
 
     def child_count(self):
-        return len(self.childItems)
+        return len(self.child_items)
 
     def data(self, role: int):
+        if self._graphics_item is None:
+            return None
+
         if role == Qt.ItemDataRole.DisplayRole:
-            return getattr(self._graphics_item, "name", "FAILED TO GET LAYER NAME!!")
+            return self._graphics_item.name
 
         elif role == Qt.ItemDataRole.DecorationRole:
-            return getattr(self._graphics_item, "get_thumbnail", lambda: None)()
+            return self._graphics_item.get_thumbnail()
 
         elif role == Qt.ItemDataRole.SizeHintRole:
-            return getattr(self._graphics_item, "get_size_hint", lambda: None)()
+            return self._graphics_item.get_size_hint()
 
     def parent(self):
         return self._parent
 
     def row(self):
         if self._parent:
-            return self._parent.childItems.index(self)
+            return self._parent.child_items.index(self)
 
         return 0

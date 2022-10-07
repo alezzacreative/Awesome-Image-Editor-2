@@ -1,23 +1,22 @@
 from PyQt6.QtCore import QModelIndex, Qt, QAbstractItemModel
 
-from .custom_graphics_scene import QGraphicsSceneCustom
-from .tree_item import QGraphicsTreeItem
+from .graphics_scene import AIEGraphicsScene
+from .tree_item import TreeItemDataProtocol, TreeItem
 
 
-class QGraphicsTreeModel(QAbstractItemModel):
-    def __init__(self, scene: QGraphicsSceneCustom, parent=None):
+class TreeModel(QAbstractItemModel):
+    def __init__(self, scene: AIEGraphicsScene, parent=None):
         super().__init__(parent)
 
-        self.root_item = QGraphicsTreeItem(None, None)
+        self.root_item = TreeItem(None, None)
         for item in scene.items():
-            self.root_item.append_child(QGraphicsTreeItem(item, self.root_item))
+            self.root_item.append_child(TreeItem(item, self.root_item))
 
-        scene.itemAboutToBeAppended.connect(
-            lambda: self.beginInsertRows(QModelIndex(), self.root_item.child_count(), self.root_item.child_count()))
-        scene.itemAppended.connect(self.item_appended)
+        scene.itemAppended.connect(self.append_item)
 
-    def item_appended(self, item):
-        self.root_item.append_child(QGraphicsTreeItem(item, self.root_item))
+    def append_item(self, item: TreeItemDataProtocol):
+        self.beginInsertRows(QModelIndex(), self.root_item.child_count(), self.root_item.child_count())
+        self.root_item.append_child(TreeItem(item, self.root_item))
         self.endInsertRows()
 
     def columnCount(self, parent: QModelIndex = ...):
@@ -26,7 +25,7 @@ class QGraphicsTreeModel(QAbstractItemModel):
     def data(self, index: QModelIndex, role: int = ...):
         if not index.isValid():
             return None
-        item: QGraphicsTreeItem = index.internalPointer()
+        item: TreeItem = index.internalPointer()
         return item.data(role)
 
     def flags(self, index):
