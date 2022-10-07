@@ -60,7 +60,7 @@ def add_shape_layer(scene, layer, psd_width, psd_height):
         scene.addItem(item)
 
 
-def load_project_from_psd(filepath):
+def load_psd_as_project(filepath):
     psd = PSDImage.open(filepath)
 
     project = AIEProject()

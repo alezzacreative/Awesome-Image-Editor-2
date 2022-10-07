@@ -17,7 +17,7 @@ from PyQt6.QtWidgets import (
 
 from .dialogs.gaussian_blur import GaussianBlurDialog
 from .file_format import AIEProject
-from .psd_read import load_project_from_psd
+from .psd_read import load_psd_as_project
 
 __all__ = ("MainWindow",)
 
@@ -171,7 +171,7 @@ class MainWindow(QMainWindow):
         if not filepath:
             return
 
-        self.set_project(load_project_from_psd(filepath))
+        self.set_project(load_psd_as_project(filepath))
 
     def setup_file_menu(self):
         menu = QMenu("File", self)
