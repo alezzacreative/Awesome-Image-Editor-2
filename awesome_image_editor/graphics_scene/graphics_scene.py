@@ -4,7 +4,8 @@ from PyQt6.QtWidgets import QGraphicsScene, QGraphicsItem
 
 
 class AIEGraphicsScene(QGraphicsScene):
-    itemAppended = pyqtSignal(QGraphicsItem)
+    itemAboutToBeAppended = pyqtSignal(int)
+    itemAppended = pyqtSignal()
 
     def __init__(self):
         super().__init__()
@@ -12,8 +13,9 @@ class AIEGraphicsScene(QGraphicsScene):
         self.changed.connect(self.update)
 
     def addItem(self, item: QGraphicsItem) -> None:
+        self.itemAboutToBeAppended.emit(len(self.items()))
         super().addItem(item)
-        self.itemAppended.emit(item)
+        self.itemAppended.emit()
 
     def drawForeground(self, painter: QPainter, rect: QRectF) -> None:
         # Draw selection bounding box

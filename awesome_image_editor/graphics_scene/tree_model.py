@@ -1,27 +1,28 @@
 from PyQt6.QtCore import QModelIndex, Qt, QAbstractItemModel
 
 from .graphics_scene import AIEGraphicsScene
-from .tree_item import TreeItemDataProtocol, TreeItem
+from .roles import ItemSelectionRole
+from .tree_item import TreeItemProtocol
+
+
+def item_index_relative_to_parent(item: TreeItemProtocol):
+    parent = item.parent()
+    if parent:
+        return parent.childItems().index(item)
+
+    return 0
 
 
 class TreeModel(QAbstractItemModel):
     def __init__(self, scene: AIEGraphicsScene, parent=None):
         super().__init__(parent)
         self._scene = scene
-        self.root_item = TreeItem(None, None)
 
-        for item in scene.items():
-            self.root_item.append_child(TreeItem(item, self.root_item))
-
-        scene.itemAppended.connect(self.append_item)
+        scene.itemAboutToBeAppended.connect(lambda i: self.beginInsertRows(QModelIndex(), i, i))
+        scene.itemAppended.connect(lambda: self.endInsertRows())
 
     def scene(self):
         return self._scene
-
-    def append_item(self, item: TreeItemDataProtocol):
-        self.beginInsertRows(QModelIndex(), self.root_item.child_count(), self.root_item.child_count())
-        self.root_item.append_child(TreeItem(item, self.root_item))
-        self.endInsertRows()
 
     def columnCount(self, parent: QModelIndex = ...):
         return 1
@@ -29,13 +30,27 @@ class TreeModel(QAbstractItemModel):
     def data(self, index: QModelIndex, role: int = ...):
         if not index.isValid():
             return None
-        item: TreeItem = index.internalPointer()
-        return item.data(role)
+        item: TreeItemProtocol = index.internalPointer()
+
+        if role == Qt.ItemDataRole.DisplayRole:
+            return item.name
+
+        elif role == Qt.ItemDataRole.DecorationRole:
+            return item.get_thumbnail()
+
+        elif role == Qt.ItemDataRole.SizeHintRole:
+            return item.get_size_hint()
+
+        elif role == ItemSelectionRole:
+            return item.isSelected()
 
     def setData(self, index: QModelIndex, value, role: int = ...):
-        if index.isValid():
-            item: TreeItem = index.internalPointer()
-            item.setData(role, value)
+        if not index.isValid():
+            return
+
+        item: TreeItemProtocol = index.internalPointer()
+        if role == ItemSelectionRole:
+            item.setSelected(value)
 
     def flags(self, index):
         if not index.isValid():
@@ -47,36 +62,27 @@ class TreeModel(QAbstractItemModel):
         if not self.hasIndex(row, column, parent):
             return QModelIndex()
 
-        if not parent.isValid():
-            parent_item = self.root_item
+        if parent.isValid():
+            child_item = parent.internalPointer().childItems()[row]
         else:
-            parent_item = parent.internalPointer()
+            child_item = self.scene().items()[row]
 
-        child_item = parent_item.child(row)
-        if child_item:
-            return self.createIndex(row, column, child_item)
-        else:
-            return QModelIndex()
+        return self.createIndex(row, column, child_item)
 
     def parent(self, index):
         if not index.isValid():
             return QModelIndex()
 
         child_item = index.internalPointer()
-        parent_item = child_item.parent()
+        parent_item = child_item.parentItem()
 
-        if parent_item == self.root_item:
+        if parent_item is None:
             return QModelIndex()
 
-        return self.createIndex(parent_item.row(), 0, parent_item)
+        return self.createIndex(item_index_relative_to_parent(parent_item), 0, parent_item)
 
     def rowCount(self, parent=QModelIndex()):
-        if parent.column() > 0:
-            return 0
-
-        if not parent.isValid():
-            parent_item = self.root_item
+        if parent.isValid():
+            return len(parent.internalPointer().childItems())
         else:
-            parent_item = parent.internalPointer()
-
-        return parent_item.child_count()
+            return len(self._scene.items())
