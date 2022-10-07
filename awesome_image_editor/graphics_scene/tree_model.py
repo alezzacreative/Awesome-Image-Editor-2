@@ -6,18 +6,18 @@ from .tree_item import QGraphicsTreeItem
 
 class QGraphicsTreeModel(QAbstractItemModel):
     def __init__(self, scene: QGraphicsSceneCustom, parent=None):
-        super(QGraphicsTreeModel, self).__init__(parent)
+        super().__init__(parent)
 
-        self.rootItem = QGraphicsTreeItem(None, None)
+        self.root_item = QGraphicsTreeItem(None, None)
         for item in scene.items():
-            self.rootItem.append_child(QGraphicsTreeItem(item, self.rootItem))
+            self.root_item.append_child(QGraphicsTreeItem(item, self.root_item))
 
         scene.itemAboutToBeAppended.connect(
-            lambda: self.beginInsertRows(QModelIndex(), self.rootItem.child_count(), self.rootItem.child_count()))
+            lambda: self.beginInsertRows(QModelIndex(), self.root_item.child_count(), self.root_item.child_count()))
         scene.itemAppended.connect(self.item_appended)
 
     def item_appended(self, item):
-        self.rootItem.append_child(QGraphicsTreeItem(item, self.rootItem))
+        self.root_item.append_child(QGraphicsTreeItem(item, self.root_item))
         self.endInsertRows()
 
     def columnCount(self, parent: QModelIndex = ...):
@@ -40,7 +40,7 @@ class QGraphicsTreeModel(QAbstractItemModel):
             return QModelIndex()
 
         if not parent.isValid():
-            parent_item = self.rootItem
+            parent_item = self.root_item
         else:
             parent_item = parent.internalPointer()
 
@@ -57,7 +57,7 @@ class QGraphicsTreeModel(QAbstractItemModel):
         child_item = index.internalPointer()
         parent_item = child_item.parent()
 
-        if parent_item == self.rootItem:
+        if parent_item == self.root_item:
             return QModelIndex()
 
         return self.createIndex(parent_item.row(), 0, parent_item)
@@ -67,7 +67,7 @@ class QGraphicsTreeModel(QAbstractItemModel):
             return 0
 
         if not parent.isValid():
-            parent_item = self.rootItem
+            parent_item = self.root_item
         else:
             parent_item = parent.internalPointer()
 
