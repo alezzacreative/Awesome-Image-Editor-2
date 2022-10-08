@@ -1,5 +1,5 @@
 from PyQt6.QtCore import pyqtSignal, QRectF
-from PyQt6.QtGui import QPainter
+from PyQt6.QtGui import QPainter, QColor
 from PyQt6.QtWidgets import QGraphicsScene, QGraphicsItem
 
 
@@ -20,6 +20,8 @@ class AIEGraphicsScene(QGraphicsScene):
     def drawForeground(self, painter: QPainter, rect: QRectF) -> None:
         # Draw selection bounding box
         painter.setRenderHint(QPainter.RenderHint.Antialiasing, False)
+        painter.setCompositionMode(QPainter.CompositionMode.RasterOp_SourceXorDestination)
+        painter.setPen(QColor(255, 255, 255))
         rect = QRectF()
         for item in self.selectedItems():
             rect = rect.united(item.sceneBoundingRect())
