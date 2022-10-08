@@ -19,6 +19,7 @@ class AIEGraphicsScene(QGraphicsScene):
 
     def drawForeground(self, painter: QPainter, rect: QRectF) -> None:
         # Draw selection bounding box
+        painter.save()
         painter.setRenderHint(QPainter.RenderHint.Antialiasing, False)
         painter.setCompositionMode(QPainter.CompositionMode.RasterOp_SourceXorDestination)
         painter.setPen(QColor(255, 255, 255))
@@ -26,4 +27,4 @@ class AIEGraphicsScene(QGraphicsScene):
         for item in self.selectedItems():
             rect = rect.united(item.sceneBoundingRect())
         painter.drawRect(rect)
-        painter.setRenderHint(QPainter.RenderHint.Antialiasing, True)
+        painter.restore()
