@@ -13,6 +13,7 @@ def add_pixel_layer(scene, layer):
     image_name = layer.name
     item = AIEImageItem(image, image_name)
     item.setPos(left, top)
+    item.setVisible(layer.visible)
     scene.addItem(item)
 
 
@@ -57,6 +58,7 @@ def add_shape_layer(scene, layer, psd_width, psd_height):
             _connect_knots_cubic(qpath, subpath[-1], subpath[0], psd_width, psd_height)
 
         item = AIEShapeItem(qpath, layer_name)
+        item.setVisible(layer.visible)
         scene.addItem(item)
 
 
