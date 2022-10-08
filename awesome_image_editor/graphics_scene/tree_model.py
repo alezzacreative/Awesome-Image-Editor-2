@@ -44,13 +44,22 @@ class TreeModel(QAbstractItemModel):
         elif role == ItemSelectionRole:
             return item.isSelected()
 
-    def setData(self, index: QModelIndex, value, role: int = ...):
+    def setData_(self, index: QModelIndex, value, role: int = ...):
         if not index.isValid():
-            return
+            return False
 
         item: TreeItemProtocol = index.internalPointer()
         if role == ItemSelectionRole:
             item.setSelected(value)
+            return True
+
+        return False
+
+    def setData(self, index: QModelIndex, value, role: int = ...) -> bool:
+        is_data_changed = self.setData_(index, value, role)
+        if is_data_changed:
+            self.dataChanged.emit(index, index)
+        return is_data_changed
 
     def flags(self, index):
         if not index.isValid():
