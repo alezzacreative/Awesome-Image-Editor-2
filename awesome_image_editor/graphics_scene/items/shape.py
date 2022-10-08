@@ -1,7 +1,7 @@
 from typing import Optional
 
 from PyQt6.QtCore import QRectF
-from PyQt6.QtGui import QPainterPath, QPainter
+from PyQt6.QtGui import QPainterPath, QPainter, QColor
 from PyQt6.QtWidgets import QStyleOptionGraphicsItem, QWidget, QGraphicsItem
 
 
@@ -10,6 +10,7 @@ class AIEShapeItem(QGraphicsItem):
         super().__init__()
         self.name = name
         self.path = path
+        self.stroke_color = QColor(0, 0, 0)
         self.setFlag(QGraphicsItem.GraphicsItemFlag.ItemIsSelectable, True)
         self.setFlag(QGraphicsItem.GraphicsItemFlag.ItemIsMovable, True)
 
@@ -21,4 +22,5 @@ class AIEShapeItem(QGraphicsItem):
         return self.path.boundingRect()
 
     def paint(self, painter: QPainter, option: QStyleOptionGraphicsItem, widget: Optional[QWidget] = ...) -> None:
+        painter.setPen(self.stroke_color)
         painter.drawPath(self.path)
