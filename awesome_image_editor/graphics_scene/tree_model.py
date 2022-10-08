@@ -41,6 +41,9 @@ class TreeModel(QAbstractItemModel):
         elif role == Qt.ItemDataRole.SizeHintRole:
             return item.get_size_hint()
 
+        elif role == Qt.ItemDataRole.CheckStateRole:
+            return Qt.CheckState.Checked if item.isVisible() else Qt.CheckState.Unchecked
+
         elif role == ItemSelectionRole:
             return item.isSelected()
 
@@ -51,6 +54,9 @@ class TreeModel(QAbstractItemModel):
         item: TreeItemProtocol = index.internalPointer()
         if role == ItemSelectionRole:
             item.setSelected(value)
+            return True
+        elif role == Qt.ItemDataRole.CheckStateRole:
+            item.setVisible(Qt.CheckState(value) == Qt.CheckState.Checked)
             return True
 
         return False
@@ -65,7 +71,7 @@ class TreeModel(QAbstractItemModel):
         if not index.isValid():
             return Qt.ItemFlag.NoItemFlags
 
-        return Qt.ItemFlag.ItemIsEnabled | Qt.ItemFlag.ItemIsSelectable
+        return Qt.ItemFlag.ItemIsEnabled | Qt.ItemFlag.ItemIsSelectable | Qt.ItemFlag.ItemIsUserCheckable
 
     def index(self, row: int, column: int, parent: QModelIndex = ...):
         if not self.hasIndex(row, column, parent):
