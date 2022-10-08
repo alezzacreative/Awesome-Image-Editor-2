@@ -9,7 +9,7 @@ def item_index_relative_to_parent(item: TreeItemProtocol):
     parent = item.parent()
     if parent:
         return parent.childItems().index(item)
-
+    # FIXME: should return index of item in scene items list instead?
     return 0
 
 
@@ -79,7 +79,8 @@ class TreeModel(QAbstractItemModel):
         if parent_item is None:
             return QModelIndex()
 
-        return self.createIndex(item_index_relative_to_parent(parent_item), 0, parent_item)
+        row = item_index_relative_to_parent(parent_item)
+        return self.createIndex(row, 0, parent_item)
 
     def rowCount(self, parent=QModelIndex()):
         if parent.isValid():
