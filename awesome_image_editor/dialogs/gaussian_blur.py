@@ -1,5 +1,4 @@
 from PyQt6.QtCore import Qt
-from PyQt6.QtGui import QValidator
 from PyQt6.QtWidgets import (
     QDialog,
     QVBoxLayout,
@@ -10,19 +9,6 @@ from PyQt6.QtWidgets import (
     QPushButton,
     QCheckBox,
 )
-
-
-class ClampedDoubleSpinbox(QDoubleSpinBox):
-    def validate(self, text: str, pos: int) -> QValidator.State:
-        try:
-            float(text)
-            return QValidator.State.Acceptable
-        except ValueError:
-            return QValidator.State.Invalid
-
-    def valueFromText(self, text: str) -> float:
-        # Validation logic should be in an overridden "validate" method
-        return max(min(float(text), self.maximum()), self.minimum())
 
 
 class GaussianBlurDialog(QDialog):
@@ -78,7 +64,7 @@ class GaussianBlurDialog(QDialog):
         layout = QHBoxLayout()
         layout.addWidget(QLabel("Radius:"))
         layout.addStretch(1)
-        spinbox = ClampedDoubleSpinbox()
+        spinbox = QDoubleSpinBox()
         spinbox.setDecimals(1)
         spinbox.setRange(self.MIN_RADIUS, self.MAX_RADIUS)
         spinbox.setValue(self.DEFAULT_RADIUS)
