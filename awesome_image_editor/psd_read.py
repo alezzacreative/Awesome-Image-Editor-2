@@ -1,9 +1,13 @@
-from PyQt6.QtGui import QPainterPath
+from PyQt6.QtGui import QPainterPath, QTextCharFormat, QTextCursor, QFont, QColor, qRgba
+from PyQt6.QtWidgets import QGraphicsTextItem
 from psd_tools import PSDImage
 
 from .file_format import AIEProject
 from .graphics_scene.items.image import AIEImageItem
 from .graphics_scene.items.shape import AIEShapeItem
+from .graphics_scene.items.type import AIETextItem
+
+DEFAULT_PSD_TEXT_FILL_COLOR_DATA = {'Type': 1, 'Values': [1, 0, 0, 0]}
 
 
 def add_pixel_layer(scene, layer):
@@ -62,6 +66,46 @@ def add_shape_layer(scene, layer, psd_width, psd_height):
         scene.addItem(item)
 
 
+def add_type_layer(scene, layer):
+    item = AIETextItem("", layer.name)
+    item.setPos(layer.offset[0], layer.offset[1])
+    item.setVisible(layer.visible)
+    scene.addItem(item)
+
+    cursor = QTextCursor(item.document())
+
+    # Extract font for each substring in the text.
+    text = layer.engine_dict['Editor']['Text'].value
+    fontset = layer.resource_dict['FontSet']
+    runlength = layer.engine_dict['StyleRun']['RunLengthArray']
+    rundata = layer.engine_dict['StyleRun']['RunArray']
+    index = 0
+    for length, style in zip(runlength, rundata):
+        substring: str = text[index:index + length]
+
+        stylesheet = style['StyleSheet']['StyleSheetData']
+        font = fontset[stylesheet['Font']]
+        index += length
+
+        fill_color_data = stylesheet.get('FillColor', DEFAULT_PSD_TEXT_FILL_COLOR_DATA)
+        fill_color_argb_float = fill_color_data['Values']
+        fill_color_rgba_float = (*fill_color_argb_float[1:], fill_color_argb_float[0])
+        fill_color_rgba_uchar = tuple(map(lambda x: int(x * 255), fill_color_rgba_float))
+
+        font_family = str(font['Name'])
+        font_size = stylesheet['FontSize']
+
+        qfont = QFont()
+        qfont.setPixelSize(font_size)
+        qfont.setFamily(font_family)
+
+        char_format = QTextCharFormat()
+        char_format.setFont(qfont)
+        char_format.setForeground(QColor(*fill_color_rgba_uchar))
+
+        cursor.insertText(substring, char_format)
+
+
 def load_psd_as_project(filepath):
     psd = PSDImage.open(filepath)
 
@@ -73,5 +117,8 @@ def load_psd_as_project(filepath):
 
         elif layer.kind == "shape":
             add_shape_layer(scene, layer, psd.width, psd.height)
+
+        elif layer.kind == "type":
+            add_type_layer(scene, layer)
 
     return project
