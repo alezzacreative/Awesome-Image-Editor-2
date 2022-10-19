@@ -14,13 +14,20 @@ class AIEShapeItem(QGraphicsItem):
         self.setFlag(QGraphicsItem.GraphicsItemFlag.ItemIsSelectable, True)
         self.setFlag(QGraphicsItem.GraphicsItemFlag.ItemIsMovable, True)
 
-    def get_thumbnail(self): ...
+    def get_thumbnail(self):
+        ...
 
-    def get_size_hint(self): ...
+    def get_size_hint(self):
+        ...
 
     def boundingRect(self) -> QRectF:
         return self.path.boundingRect()
 
-    def paint(self, painter: QPainter, option: QStyleOptionGraphicsItem, widget: Optional[QWidget] = ...) -> None:
+    def paint(
+        self,
+        painter: QPainter,
+        option: QStyleOptionGraphicsItem,
+        widget: Optional[QWidget] = ...,
+    ) -> None:
         painter.setPen(self.stroke_color)
         painter.drawPath(self.path)

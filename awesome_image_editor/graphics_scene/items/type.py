@@ -1,7 +1,13 @@
-from PyQt6.QtCore import Qt, QEvent
-from PyQt6.QtWidgets import QGraphicsTextItem, QGraphicsItem, QStyleOptionGraphicsItem, QWidget, QStyle, \
-    QGraphicsSceneMouseEvent
-from PyQt6.QtGui import QPainter, QPainterPath, QFocusEvent, QTextCursor
+from PyQt6.QtCore import Qt
+from PyQt6.QtWidgets import (
+    QGraphicsTextItem,
+    QGraphicsItem,
+    QStyleOptionGraphicsItem,
+    QWidget,
+    QStyle,
+    QGraphicsSceneMouseEvent,
+)
+from PyQt6.QtGui import QPainter, QFocusEvent, QTextCursor
 
 
 class AIETextItem(QGraphicsTextItem):
@@ -13,7 +19,9 @@ class AIETextItem(QGraphicsTextItem):
         self.setTextInteractionFlags(Qt.TextInteractionFlag.NoTextInteraction)
         self.document().setLayoutEnabled(True)
 
-    def paint(self, painter: QPainter, option: QStyleOptionGraphicsItem, widget: QWidget) -> None:
+    def paint(
+        self, painter: QPainter, option: QStyleOptionGraphicsItem, widget: QWidget
+    ) -> None:
         option.state &= ~QStyle.StateFlag.State_Enabled
         option.state &= ~QStyle.StateFlag.State_HasFocus
         option.state &= ~QStyle.StateFlag.State_Selected
@@ -27,7 +35,7 @@ class AIETextItem(QGraphicsTextItem):
         super().focusOutEvent(event)
         # TODO: focus out text item using ESC and dedicated button instead
         self.setTextInteractionFlags(Qt.TextInteractionFlag.NoTextInteraction)
-    
+
         # Clear cursor when focusing out, otherwise selection will remain.
         # P.S.: We have to create and set a cursor
         # self.getTextCursor won't allow us to modify the selection, it returns a copy
@@ -36,6 +44,8 @@ class AIETextItem(QGraphicsTextItem):
         self.setTextCursor(cursor)
         cursor.clearSelection()
 
-    def get_thumbnail(self): ...
+    def get_thumbnail(self):
+        ...
 
-    def get_size_hint(self): ...
+    def get_size_hint(self):
+        ...

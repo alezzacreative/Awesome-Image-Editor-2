@@ -12,7 +12,7 @@ from PyQt6.QtWidgets import (
     QMainWindow,
     QMenu,
     QMessageBox,
-    QGraphicsBlurEffect
+    QGraphicsBlurEffect,
 )
 
 from .dialogs.gaussian_blur import GaussianBlurDialog
@@ -31,7 +31,9 @@ class MainWindow(QMainWindow):
 
         self.layers_dock_widget = QDockWidget("Layers")
         self.addDockWidget(
-            Qt.DockWidgetArea.RightDockWidgetArea, self.layers_dock_widget, Qt.Orientation.Vertical
+            Qt.DockWidgetArea.RightDockWidgetArea,
+            self.layers_dock_widget,
+            Qt.Orientation.Vertical,
         )
 
         self._project = AIEProject()
@@ -135,10 +137,12 @@ class MainWindow(QMainWindow):
     def add_gaussian_blur_to_selected_layer(self):
         scene = self._project.get_graphics_scene()
         if len(scene.selectedItems()) == 0:
-            QMessageBox.information(self,
-                                    "Warning",
-                                    "No selected layers to apply effect, please select at least one layer",
-                                    QMessageBox.StandardButton.Ok)
+            QMessageBox.information(
+                self,
+                "Warning",
+                "No selected layers to apply effect, please select at least one layer",
+                QMessageBox.StandardButton.Ok,
+            )
             return
 
         dlg = GaussianBlurDialog()

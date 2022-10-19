@@ -1,6 +1,12 @@
 from PyQt6.QtCore import Qt
-from PyQt6.QtGui import QPainterPath, QTextCharFormat, QTextCursor, QFont, QColor, qRgba, QTextBlockFormat
-from PyQt6.QtWidgets import QGraphicsTextItem
+from PyQt6.QtGui import (
+    QPainterPath,
+    QTextCharFormat,
+    QTextCursor,
+    QFont,
+    QColor,
+    QTextBlockFormat,
+)
 from psd_tools import PSDImage
 
 from .file_format import AIEProject
@@ -8,7 +14,7 @@ from .graphics_scene.items.image import AIEImageItem
 from .graphics_scene.items.shape import AIEShapeItem
 from .graphics_scene.items.type import AIETextItem
 
-DEFAULT_PSD_TEXT_FILL_COLOR_DATA = {'Type': 1, 'Values': [1, 0, 0, 0]}
+DEFAULT_PSD_TEXT_FILL_COLOR_DATA = {"Type": 1, "Values": [1, 0, 0, 0]}
 
 
 def add_pixel_layer(scene, layer):
@@ -43,7 +49,14 @@ def _connect_knots_cubic(qpath: QPainterPath, k1, k2, psd_width, psd_height):
     control_point_2_x *= psd_width
     control_point_2_y *= psd_height
 
-    qpath.cubicTo(control_point_1_x, control_point_1_y, control_point_2_x, control_point_2_y, end_x, end_y)
+    qpath.cubicTo(
+        control_point_1_x,
+        control_point_1_y,
+        control_point_2_x,
+        control_point_2_y,
+        end_x,
+        end_y,
+    )
 
 
 def add_shape_layer(scene, layer, psd_width, psd_height):
@@ -58,7 +71,9 @@ def add_shape_layer(scene, layer, psd_width, psd_height):
         if num_knots == 0:
             continue
         qpath = QPainterPath()
-        qpath.moveTo(subpath[0].anchor[1] * psd_width, subpath[0].anchor[0] * psd_height)
+        qpath.moveTo(
+            subpath[0].anchor[1] * psd_width, subpath[0].anchor[0] * psd_height
+        )
         for i in range(num_knots - 1):
             current_knot = subpath[i]
             next_knot = subpath[i + 1]
@@ -81,27 +96,29 @@ def add_type_layer(scene, layer):
     document.setUseDesignMetrics(True)
     cursor = QTextCursor(document)
 
-    text = layer.engine_dict['Editor']['Text'].value
-    fontset = layer.resource_dict['FontSet']
-    runlength = layer.engine_dict['StyleRun']['RunLengthArray']
-    rundata = layer.engine_dict['StyleRun']['RunArray']
+    text = layer.engine_dict["Editor"]["Text"].value
+    fontset = layer.resource_dict["FontSet"]
+    runlength = layer.engine_dict["StyleRun"]["RunLengthArray"]
+    rundata = layer.engine_dict["StyleRun"]["RunArray"]
     assert len(rundata) == len(runlength)
 
     index = 0
     for length, style in zip(runlength, rundata):
-        substring: str = text[index:index + length]
+        substring: str = text[index : index + length]
 
-        stylesheet = style['StyleSheet']['StyleSheetData']
-        font = fontset[stylesheet['Font']]
+        stylesheet = style["StyleSheet"]["StyleSheetData"]
+        font = fontset[stylesheet["Font"]]
         index += length
 
-        fill_color_data = stylesheet.get('FillColor', DEFAULT_PSD_TEXT_FILL_COLOR_DATA)
-        fill_color_argb_float = fill_color_data['Values']
+        fill_color_data = stylesheet.get("FillColor", DEFAULT_PSD_TEXT_FILL_COLOR_DATA)
+        fill_color_argb_float = fill_color_data["Values"]
         fill_color_rgba_float = (*fill_color_argb_float[1:], fill_color_argb_float[0])
-        fill_color_rgba_uchar = tuple(map(lambda x: int(x * 255), fill_color_rgba_float))
+        fill_color_rgba_uchar = tuple(
+            map(lambda x: int(x * 255), fill_color_rgba_float)
+        )
 
-        font_family = str(font['Name'])
-        font_size = stylesheet['FontSize']
+        font_family = str(font["Name"])
+        font_size = stylesheet["FontSize"]
 
         qfont = QFont()
         qfont.setPixelSize(font_size)
@@ -113,7 +130,7 @@ def add_type_layer(scene, layer):
 
         cursor.insertText(substring, char_format)
 
-    paragraph_rundata = layer.engine_dict['ParagraphRun']['RunArray']
+    paragraph_rundata = layer.engine_dict["ParagraphRun"]["RunArray"]
     # paragraph_runlength = layer.engine_dict['ParagraphRun']['RunLengthArray']
 
     assert (document.blockCount() - 1) == len(paragraph_rundata)

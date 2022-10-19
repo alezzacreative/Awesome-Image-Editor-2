@@ -21,7 +21,9 @@ class LayersWidget(QWidget):
         self.layout.addWidget(self.toolbar)
         self.toolbar.setLayoutDirection(Qt.LayoutDirection.RightToLeft)
 
-        icon = QIcon((PurePath(__file__).parent.parent / "icons" / "recycle_bin.svg").as_posix())
+        icon = QIcon(
+            (PurePath(__file__).parent.parent / "icons" / "recycle_bin.svg").as_posix()
+        )
         self.toolbar.addAction(icon, "Delete", self.delete_selected_items)
         self.setLayout(self.layout)
 

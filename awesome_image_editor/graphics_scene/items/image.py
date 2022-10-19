@@ -16,8 +16,11 @@ class AIEImageItem(QGraphicsItem):
         self.setFlag(QGraphicsItem.GraphicsItemFlag.ItemIsMovable, True)
 
     def get_thumbnail(self):
-        return self.image.scaled(THUMBNAIL_SIZE, Qt.AspectRatioMode.KeepAspectRatio,
-                                 Qt.TransformationMode.SmoothTransformation)
+        return self.image.scaled(
+            THUMBNAIL_SIZE,
+            Qt.AspectRatioMode.KeepAspectRatio,
+            Qt.TransformationMode.SmoothTransformation,
+        )
 
     def get_size_hint(self):
         return THUMBNAIL_SIZE
@@ -26,9 +29,9 @@ class AIEImageItem(QGraphicsItem):
         return QRectF(self.image.rect())
 
     def paint(
-            self,
-            painter: QPainter,
-            option: QStyleOptionGraphicsItem,
-            widget: Optional[QWidget] = ...,
+        self,
+        painter: QPainter,
+        option: QStyleOptionGraphicsItem,
+        widget: Optional[QWidget] = ...,
     ) -> None:
         painter.drawImage(self.boundingRect(), self.image)

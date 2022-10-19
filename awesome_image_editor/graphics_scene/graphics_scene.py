@@ -29,7 +29,9 @@ class AIEGraphicsScene(QGraphicsScene):
         # Draw selection bounding box
         painter.save()
         painter.setRenderHint(QPainter.RenderHint.Antialiasing, False)
-        painter.setCompositionMode(QPainter.CompositionMode.RasterOp_SourceXorDestination)
+        painter.setCompositionMode(
+            QPainter.CompositionMode.RasterOp_SourceXorDestination
+        )
         painter.setPen(QColor(255, 255, 255))
         painter.drawRect(self._calc_selected_items_bounding_box())
         painter.restore()

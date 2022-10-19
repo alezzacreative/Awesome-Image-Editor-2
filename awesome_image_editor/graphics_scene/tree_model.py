@@ -18,7 +18,9 @@ class TreeModel(QAbstractItemModel):
         super().__init__(parent)
         self._scene = scene
 
-        scene.itemAboutToBeAppended.connect(lambda i: self.beginInsertRows(QModelIndex(), i, i))
+        scene.itemAboutToBeAppended.connect(
+            lambda i: self.beginInsertRows(QModelIndex(), i, i)
+        )
         scene.itemAppended.connect(lambda: self.endInsertRows())
 
     def scene(self):
@@ -42,7 +44,9 @@ class TreeModel(QAbstractItemModel):
             return item.get_size_hint()
 
         elif role == Qt.ItemDataRole.CheckStateRole:
-            return Qt.CheckState.Checked if item.isVisible() else Qt.CheckState.Unchecked
+            return (
+                Qt.CheckState.Checked if item.isVisible() else Qt.CheckState.Unchecked
+            )
 
         elif role == ItemSelectionRole:
             return item.isSelected()
@@ -71,7 +75,11 @@ class TreeModel(QAbstractItemModel):
         if not index.isValid():
             return Qt.ItemFlag.NoItemFlags
 
-        return Qt.ItemFlag.ItemIsEnabled | Qt.ItemFlag.ItemIsSelectable | Qt.ItemFlag.ItemIsUserCheckable
+        return (
+            Qt.ItemFlag.ItemIsEnabled
+            | Qt.ItemFlag.ItemIsSelectable
+            | Qt.ItemFlag.ItemIsUserCheckable
+        )
 
     def index(self, row: int, column: int, parent: QModelIndex = ...):
         if not self.hasIndex(row, column, parent):
