@@ -19,9 +19,6 @@ class AIETextItem(QGraphicsTextItem):
         option.state &= ~QStyle.StateFlag.State_Selected
         super().paint(painter, option, widget)
 
-    def mousePressEvent(self, event: QGraphicsSceneMouseEvent) -> None:
-        super().mousePressEvent(event)
-
     def mouseDoubleClickEvent(self, event: QGraphicsSceneMouseEvent) -> None:
         super().mouseDoubleClickEvent(event)
         self.setTextInteractionFlags(Qt.TextInteractionFlag.TextEditorInteraction)
@@ -30,7 +27,7 @@ class AIETextItem(QGraphicsTextItem):
         super().focusOutEvent(event)
         # TODO: focus out text item using ESC and dedicated button instead
         self.setTextInteractionFlags(Qt.TextInteractionFlag.NoTextInteraction)
-
+    
         # Clear cursor when focusing out, otherwise selection will remain.
         # P.S.: We have to create and set a cursor
         # self.getTextCursor won't allow us to modify the selection, it returns a copy
