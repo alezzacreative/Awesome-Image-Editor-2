@@ -1,4 +1,5 @@
-from PyQt6.QtGui import QPainterPath, QTextCharFormat, QTextCursor, QFont, QColor, qRgba
+from PyQt6.QtCore import Qt
+from PyQt6.QtGui import QPainterPath, QTextCharFormat, QTextCursor, QFont, QColor, qRgba, QTextBlockFormat
 from PyQt6.QtWidgets import QGraphicsTextItem
 from psd_tools import PSDImage
 
@@ -76,13 +77,16 @@ def add_type_layer(scene, layer):
     item.setVisible(layer.visible)
     scene.addItem(item)
 
-    cursor = QTextCursor(item.document())
+    document = item.document()
+    document.setUseDesignMetrics(True)
+    cursor = QTextCursor(document)
 
-    # Extract font for each substring in the text.
     text = layer.engine_dict['Editor']['Text'].value
     fontset = layer.resource_dict['FontSet']
     runlength = layer.engine_dict['StyleRun']['RunLengthArray']
     rundata = layer.engine_dict['StyleRun']['RunArray']
+    assert len(rundata) == len(runlength)
+
     index = 0
     for length, style in zip(runlength, rundata):
         substring: str = text[index:index + length]
@@ -108,6 +112,20 @@ def add_type_layer(scene, layer):
         char_format.setForeground(QColor(*fill_color_rgba_uchar))
 
         cursor.insertText(substring, char_format)
+
+    paragraph_rundata = layer.engine_dict['ParagraphRun']['RunArray']
+    # paragraph_runlength = layer.engine_dict['ParagraphRun']['RunLengthArray']
+
+    assert (document.blockCount() - 1) == len(paragraph_rundata)
+
+    document.setTextWidth(document.idealWidth())
+    cursor.movePosition(QTextCursor.MoveOperation.Start)
+    for i in range(len(paragraph_rundata)):
+        block_format = QTextBlockFormat()
+        block_format.setAlignment(Qt.AlignmentFlag.AlignRight)
+        cursor.setBlockFormat(block_format)
+
+        cursor.movePosition(QTextCursor.MoveOperation.NextBlock)
 
 
 def load_psd_as_project(filepath):
