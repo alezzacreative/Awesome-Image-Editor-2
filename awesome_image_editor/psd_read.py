@@ -12,7 +12,11 @@ DEFAULT_PSD_TEXT_FILL_COLOR_DATA = {'Type': 1, 'Values': [1, 0, 0, 0]}
 
 def add_pixel_layer(scene, layer):
     assert layer.kind == "pixel"
-    image = layer.topil().toqimage()
+    pil_image = layer.topil()
+    if pil_image is None:
+        return
+
+    image = pil_image.toqimage()
     left, top = layer.offset
     image_name = layer.name
     item = AIEImageItem(image, image_name)
