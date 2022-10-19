@@ -11,6 +11,7 @@ class AIETextItem(QGraphicsTextItem):
         self.setFlag(QGraphicsItem.GraphicsItemFlag.ItemIsSelectable, True)
         self.setFlag(QGraphicsItem.GraphicsItemFlag.ItemIsMovable, True)
         self.setTextInteractionFlags(Qt.TextInteractionFlag.NoTextInteraction)
+        self.document().setLayoutEnabled(True)
 
     def paint(self, painter: QPainter, option: QStyleOptionGraphicsItem, widget: QWidget) -> None:
         option.state &= ~QStyle.StateFlag.State_Enabled
