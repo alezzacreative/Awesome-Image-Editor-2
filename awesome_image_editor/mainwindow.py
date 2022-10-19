@@ -5,13 +5,14 @@ from PyQt6.QtCore import (
     QStandardPaths,
     Qt,
 )
-from PyQt6.QtGui import QImage
+from PyQt6.QtGui import QImage, QFont
 from PyQt6.QtWidgets import (
     QDockWidget,
     QMainWindow,
     QMenu,
     QMessageBox,
     QGraphicsBlurEffect,
+    QToolBar
 )
 
 from .dialogs.gaussian_blur import GaussianBlurDialog
@@ -40,20 +41,14 @@ class MainWindow(QMainWindow):
         self.setCentralWidget(self._project.get_graphics_view())
         self.layers_dock_widget.setWidget(self._project.get_layers_widget())
 
-        # TODO: toolbar with tools
-        # toolbar = QToolBar()
-        # toolbar.setOrientation(Qt.Vertical)
-        # toolbar.setMovable(False)
-        # toolbar_font = QFont()
-        # toolbar_font.setPointSize(17)
-        # toolbar.setFont(toolbar_font)
-
-        # # Blur
-        # toolbar.addAction("Blur", lambda: ...)
-        # blur_widget = LinkedSliderSpinBox(100, 0, 1000)
-        # toolbar.addWidget(blur_widget)
-
-        # self.addToolBar(Qt.LeftToolBarArea, toolbar)
+        # TODO: add tools to toolbar
+        toolbar = QToolBar()
+        toolbar.setOrientation(Qt.Orientation.Vertical)
+        toolbar.setMovable(True)
+        toolbar_font = QFont()
+        toolbar_font.setPointSize(17)
+        toolbar.setFont(toolbar_font)
+        self.addToolBar(Qt.ToolBarArea.LeftToolBarArea, toolbar)
 
         self.showMaximized()
 
