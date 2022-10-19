@@ -8,7 +8,6 @@ from PyQt6.QtCore import (
 from PyQt6.QtGui import QImage
 from PyQt6.QtWidgets import (
     QDockWidget,
-    QFileDialog,
     QMainWindow,
     QMenu,
     QMessageBox,
@@ -18,6 +17,7 @@ from PyQt6.QtWidgets import (
 from .dialogs.gaussian_blur import GaussianBlurDialog
 from .file_format import AIEProject
 from .psd_read import load_psd_as_project
+from .file_dialog import create_open_file_dialog, create_save_file_dialog
 
 __all__ = ("MainWindow",)
 
@@ -66,71 +66,60 @@ class MainWindow(QMainWindow):
         return self._project
 
     def open_project(self):
-        filepath, chosen_filter = QFileDialog.getOpenFileName(
-            self,
-            "Open",
-            QStandardPaths.writableLocation(
-                QStandardPaths.StandardLocation.PicturesLocation
-            ),
-            "Awesome Image Editor Project (*.aie)",
+        default_dir = QStandardPaths.writableLocation(
+            QStandardPaths.StandardLocation.PicturesLocation
         )
-        if not filepath:
-            return
+        dlg = create_open_file_dialog(
+            default_dir, "Awesome Image Editor Project (*.aie)"
+        )
 
-        with open(filepath, "rb") as file:
-            self.set_project(AIEProject.deserialize(file))
+        if dlg.exec():
+            filepath = dlg.selectedFiles()[0]
+            with open(filepath, "rb") as file:
+                self.set_project(AIEProject.deserialize(file))
 
     def save_as_project(self):
-        filepath, chosen_filter = QFileDialog.getSaveFileName(
-            self,
-            "Save as",
-            QStandardPaths.writableLocation(
-                QStandardPaths.StandardLocation.PicturesLocation
-            ),
-            "Awesome Image Editor Project (*.aie)",
-        )
-        if not filepath:
-            return
-
         if self._project is None:
             return
 
-        with open(filepath, "wb") as file:
-            self._project.serialize(file)
+        default_dir = QStandardPaths.writableLocation(
+            QStandardPaths.StandardLocation.PicturesLocation
+        )
+        dlg = create_save_file_dialog(
+            default_dir, "Awesome Image Editor Project (*.aie)"
+        )
+
+        if dlg.exec():
+            filepath = dlg.selectedFiles()[0]
+            with open(filepath, "wb") as file:
+                self._project.serialize(file)
 
     def open_image(self):
-        filepath, chosen_filter = QFileDialog.getOpenFileName(
-            self,
-            "Open Image",
-            QStandardPaths.writableLocation(
-                QStandardPaths.StandardLocation.PicturesLocation
-            ),
-            "Image files (*.jpg *.png)",
+        default_dir = QStandardPaths.writableLocation(
+            QStandardPaths.StandardLocation.PicturesLocation
         )
-        if not filepath:
-            return
+        dlg = create_open_file_dialog(default_dir, "Image files (*.jpg *.png)")
+
         try:
-            image = QImage(filepath)
-            image_name = Path(filepath).stem
-            self._project.add_image_layer(image, image_name)
+            if dlg.exec():
+                filepath = dlg.selectedFiles()[0]
+                image = QImage(filepath)
+                image_name = Path(filepath).stem
+                self._project.add_image_layer(image, image_name)
         except:
             QMessageBox.critical(self, "Error", traceback.format_exc())
 
     def save_image(self):
-        filepath, chosen_filter = QFileDialog.getSaveFileName(
-            self,
-            "Save Image",
-            QStandardPaths.writableLocation(
-                QStandardPaths.StandardLocation.PicturesLocation
-            ),
-            "Image files (*.jpg *.png)",
+        default_dir = QStandardPaths.writableLocation(
+            QStandardPaths.StandardLocation.PicturesLocation
         )
-        if not filepath:
-            return
+        dlg = create_save_file_dialog(default_dir, "Image files (*.jpg *.png)")
 
         try:
-            image = self._project.render()
-            image.save(filepath)
+            if dlg.exec():
+                filepath = dlg.selectedFiles()[0]
+                image = self._project.render()
+                image.save(filepath)
         except:
             QMessageBox.critical(self, "Error", traceback.format_exc())
 
@@ -164,18 +153,13 @@ class MainWindow(QMainWindow):
         dlg.show()
 
     def read_psd_as_project(self):
-        filepath, chosen_filter = QFileDialog.getOpenFileName(
-            self,
-            "Open Image",
-            QStandardPaths.writableLocation(
-                QStandardPaths.StandardLocation.PicturesLocation
-            ),
-            "Photoshop Files (*.psd)",
+        default_dir = QStandardPaths.writableLocation(
+            QStandardPaths.StandardLocation.PicturesLocation
         )
-        if not filepath:
-            return
-
-        self.set_project(load_psd_as_project(filepath))
+        dlg = create_open_file_dialog(default_dir, "Photoshop Files (*.psd)")
+        if dlg.exec():
+            filepath = dlg.selectedFiles()[0]
+            self.set_project(load_psd_as_project(filepath))
 
     def setup_file_menu(self):
         menu = QMenu("File", self)
