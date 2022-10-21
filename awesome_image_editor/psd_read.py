@@ -135,11 +135,11 @@ def add_type_layer(scene, layer):
 
     assert (document.blockCount() - 1) == len(paragraph_rundata)
 
-    document.setTextWidth(document.idealWidth())
     cursor.movePosition(QTextCursor.MoveOperation.Start)
     for i in range(len(paragraph_rundata)):
         block_format = QTextBlockFormat()
-        block_format.setAlignment(Qt.AlignmentFlag.AlignRight)
+        # TODO: read paragraph alignment
+        block_format.setAlignment(Qt.AlignmentFlag.AlignLeft)
         cursor.setBlockFormat(block_format)
 
         cursor.movePosition(QTextCursor.MoveOperation.NextBlock)

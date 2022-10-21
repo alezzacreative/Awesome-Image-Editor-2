@@ -18,6 +18,15 @@ class AIETextItem(QGraphicsTextItem):
         self.setTextInteractionFlags(Qt.TextInteractionFlag.NoTextInteraction)
         self.document().setLayoutEnabled(True)
 
+        def update_width_with_layout():
+            # TODO: match text alignment with expected result from a PSD
+            # might require a custom text layout: https://doc.qt.io/qt-6/qabstracttextdocumentlayout.html
+            # Allow text to expand before setting width to ideal width
+            self.document().setTextWidth(-1)
+            self.document().setTextWidth(self.document().idealWidth())
+
+        self.document().contentsChanged.connect(update_width_with_layout)
+
     def paint(
         self, painter: QPainter, option: QStyleOptionGraphicsItem, widget: QWidget
     ) -> None:
