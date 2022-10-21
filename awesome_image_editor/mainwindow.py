@@ -12,7 +12,7 @@ from PyQt6.QtWidgets import (
     QMenu,
     QMessageBox,
     QGraphicsBlurEffect,
-    QToolBar
+    QToolBar,
 )
 
 from .dialogs.gaussian_blur import GaussianBlurDialog
