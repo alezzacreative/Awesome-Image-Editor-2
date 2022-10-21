@@ -24,7 +24,7 @@ class Application(QApplication):
         QCoreApplication.setApplicationVersion("0.0.1")
 
         self.setWindowIcon(
-            QIcon((PurePath(__file__).parent / "icons" / "app.svg").as_posix())
+            QIcon((PurePath(__file__).parent / "icons" / "app2.svg").as_posix())
         )
         # Dark theme
         # https://stackoverflow.com/a/56851493/8094047
