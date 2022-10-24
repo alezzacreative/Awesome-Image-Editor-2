@@ -19,7 +19,7 @@ class TreeItemProtocol(Protocol):
     def setSelected(self, value: bool):
         ...
 
-    def parent(self) -> "TreeItemProtocol":
+    def parentItem(self) -> "TreeItemProtocol":
         ...
 
     def childItems(self) -> List["TreeItemProtocol"]:
