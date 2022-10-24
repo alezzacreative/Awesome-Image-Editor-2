@@ -17,6 +17,12 @@ from .graphics_scene.items.text import AIETextItem
 DEFAULT_PSD_TEXT_FILL_COLOR_DATA = {"Type": 1, "Values": [1, 0, 0, 0]}
 
 
+PSD_PARAGRAPH_JUSTIFICATION_QT_ALIGNMENT_MAP = {
+    0: Qt.AlignmentFlag.AlignLeft,
+    2: Qt.AlignmentFlag.AlignCenter,
+}
+
+
 def add_pixel_layer(scene, layer):
     assert layer.kind == "pixel"
     pil_image = layer.topil()
@@ -136,10 +142,14 @@ def add_type_layer(scene, layer):
     assert (document.blockCount() - 1) == len(paragraph_rundata)
 
     cursor.movePosition(QTextCursor.MoveOperation.Start)
-    for i in range(len(paragraph_rundata)):
+    for paragraph_style in paragraph_rundata:
         block_format = QTextBlockFormat()
-        # TODO: read paragraph alignment
-        block_format.setAlignment(Qt.AlignmentFlag.AlignLeft)
+
+        alignment = PSD_PARAGRAPH_JUSTIFICATION_QT_ALIGNMENT_MAP[
+            paragraph_style["ParagraphSheet"]["Properties"]["Justification"]
+        ]
+
+        block_format.setAlignment(alignment)
         cursor.setBlockFormat(block_format)
 
         cursor.movePosition(QTextCursor.MoveOperation.NextBlock)
