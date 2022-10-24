@@ -1,24 +1,28 @@
 from psd_tools import PSDImage
 
 from ..file_format import AIEProject
-from .pixel import add_pixel_layer
-from .shape import add_shape_layer
-from .text import add_type_layer
+from .pixel import psd_pixel_layer_to_image_item
+from .shape import psd_shape_layer_to_shape_item
+from .text import psd_type_layer_to_text_item
 
 
 def load_psd_as_project(filepath):
     psd = PSDImage.open(filepath)
 
     project = AIEProject()
-    scene = project.get_graphics_scene()
     for layer in psd:
+        item = None
+
         if layer.kind == "pixel":
-            add_pixel_layer(scene, layer)
+            item = psd_pixel_layer_to_image_item(layer)
 
         elif layer.kind == "shape":
-            add_shape_layer(scene, layer, psd.width, psd.height)
+            item = psd_shape_layer_to_shape_item(layer, psd.width, psd.height)
 
         elif layer.kind == "type":
-            add_type_layer(scene, layer)
+            item = psd_type_layer_to_text_item(layer)
+
+        if item is not None:
+            project.get_graphics_scene().addItem(item)
 
     return project

@@ -9,7 +9,6 @@ from PyQt6.QtGui import (
     QTextBlockFormat,
 )
 
-from ..graphics_scene.graphics_scene import AIEGraphicsScene
 from ..graphics_scene.items.text import AIETextItem
 
 DEFAULT_PSD_TEXT_FILL_COLOR_DATA = {"Type": 1, "Values": [1, 0, 0, 0]}
@@ -21,11 +20,10 @@ PSD_PARAGRAPH_JUSTIFICATION_QT_ALIGNMENT_MAP = {
 }
 
 
-def add_type_layer(scene: AIEGraphicsScene, layer: TypeLayer):
+def psd_type_layer_to_text_item(layer: TypeLayer):
     item = AIETextItem("", layer.name)
     item.setPos(layer.offset[0], layer.offset[1])
     item.setVisible(layer.visible)
-    scene.addItem(item)
 
     document = item.document()
     document.setUseDesignMetrics(True)
@@ -82,3 +80,5 @@ def add_type_layer(scene: AIEGraphicsScene, layer: TypeLayer):
         cursor.setBlockFormat(block_format)
 
         cursor.movePosition(QTextCursor.MoveOperation.NextBlock)
+
+    return item

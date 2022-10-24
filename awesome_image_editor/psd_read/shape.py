@@ -4,7 +4,6 @@ from psd_tools.psd.vector import Knot
 
 from PyQt6.QtGui import QPainterPath
 
-from ..graphics_scene.graphics_scene import AIEGraphicsScene
 from ..graphics_scene.items.shape import AIEShapeItem
 
 
@@ -37,9 +36,7 @@ def _connect_knots_cubic(
     )
 
 
-def add_shape_layer(
-    scene: AIEGraphicsScene, layer: ShapeLayer, psd_width: int, psd_height: int
-):
+def psd_shape_layer_to_shape_item(layer: ShapeLayer, psd_width: int, psd_height: int):
     # What mainly helped:
     # https://developer.mozilla.org/en-US/docs/Web/SVG/Tutorial/Paths#b%C3%A9zier_curves
     # https://doc.qt.io/qt-5/qpainterpath.html
@@ -56,17 +53,21 @@ def add_shape_layer(
         num_knots = len(subpath)
         if num_knots == 0:
             continue
+
         qpath = QPainterPath()
         qpath.moveTo(
             subpath[0].anchor[1] * psd_width, subpath[0].anchor[0] * psd_height
         )
+
         for i in range(num_knots - 1):
             current_knot = subpath[i]
             next_knot = subpath[i + 1]
             _connect_knots_cubic(qpath, current_knot, next_knot, psd_width, psd_height)
+
         if subpath.is_closed():
             _connect_knots_cubic(qpath, subpath[-1], subpath[0], psd_width, psd_height)
 
         item = AIEShapeItem(qpath, layer_name)
         item.setVisible(layer.visible)
-        scene.addItem(item)
+
+        return item
