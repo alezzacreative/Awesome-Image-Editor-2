@@ -1,4 +1,5 @@
-from PyQt6.QtGui import QPainter
+from pathlib import PurePath
+from PyQt6.QtGui import QPainter, QIcon
 from PyQt6.QtWidgets import (
     QGraphicsItem,
     QGraphicsItemGroup,
@@ -16,7 +17,14 @@ class AIEGroupItem(QGraphicsItemGroup):
         self.setFlag(QGraphicsItem.GraphicsItemFlag.ItemIsMovable, True)
 
     def get_thumbnail(self):
-        ...
+        return QIcon(
+            (
+                PurePath(__file__).parent.parent.parent
+                / "icons"
+                / "layers"
+                / "group_layer.svg"
+            ).as_posix()
+        )
 
     def get_size_hint(self):
         ...
