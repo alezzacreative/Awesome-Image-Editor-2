@@ -1,4 +1,4 @@
-from PyQt6.QtCore import QModelIndex, Qt, QAbstractItemModel
+from PyQt6.QtCore import QAbstractItemModel, QModelIndex, Qt
 
 from .graphics_scene import AIEGraphicsScene
 from .roles import ItemSelectionRole

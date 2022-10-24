@@ -1,7 +1,7 @@
 import struct
 from typing import BinaryIO
 
-from PyQt6.QtCore import QByteArray, QBuffer, QIODevice, Qt
+from PyQt6.QtCore import QBuffer, QByteArray, QIODevice, Qt
 from PyQt6.QtGui import QImage, QPainter
 from PyQt6.QtWidgets import QGraphicsView
 

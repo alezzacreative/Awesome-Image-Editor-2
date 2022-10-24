@@ -1,6 +1,6 @@
-from PyQt6.QtCore import pyqtSignal, QRectF
-from PyQt6.QtGui import QPainter, QColor
-from PyQt6.QtWidgets import QGraphicsScene, QGraphicsItem
+from PyQt6.QtCore import QRectF, pyqtSignal
+from PyQt6.QtGui import QColor, QPainter
+from PyQt6.QtWidgets import QGraphicsItem, QGraphicsScene
 
 
 class AIEGraphicsScene(QGraphicsScene):

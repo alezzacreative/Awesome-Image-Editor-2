@@ -1,4 +1,4 @@
-from PyQt6.QtCore import QModelIndex, QItemSelectionModel, QItemSelection
+from PyQt6.QtCore import QItemSelection, QItemSelectionModel, QModelIndex
 from PyQt6.QtWidgets import QTreeView
 
 from .roles import ItemSelectionRole

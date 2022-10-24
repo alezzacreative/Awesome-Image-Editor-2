@@ -1,10 +1,5 @@
 from PyQt6.QtCore import Qt
-from PyQt6.QtWidgets import (
-    QHBoxLayout,
-    QSlider,
-    QSpinBox,
-    QWidget,
-)
+from PyQt6.QtWidgets import QHBoxLayout, QSlider, QSpinBox, QWidget
 
 __all__ = ("LinkedSliderSpinBox",)
 

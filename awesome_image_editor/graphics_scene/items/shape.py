@@ -1,8 +1,8 @@
 from typing import Optional
 
 from PyQt6.QtCore import QRectF
-from PyQt6.QtGui import QPainterPath, QPainter, QColor
-from PyQt6.QtWidgets import QStyleOptionGraphicsItem, QWidget, QGraphicsItem
+from PyQt6.QtGui import QColor, QPainter, QPainterPath
+from PyQt6.QtWidgets import QGraphicsItem, QStyleOptionGraphicsItem, QWidget
 
 
 class AIEShapeItem(QGraphicsItem):

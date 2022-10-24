@@ -1,24 +1,21 @@
 import traceback
 from pathlib import Path
 
-from PyQt6.QtCore import (
-    QStandardPaths,
-    Qt,
-)
-from PyQt6.QtGui import QImage, QFont
+from PyQt6.QtCore import QStandardPaths, Qt
+from PyQt6.QtGui import QFont, QImage
 from PyQt6.QtWidgets import (
     QDockWidget,
+    QGraphicsBlurEffect,
     QMainWindow,
     QMenu,
     QMessageBox,
-    QGraphicsBlurEffect,
     QToolBar,
 )
 
 from .dialogs.gaussian_blur import GaussianBlurDialog
+from .file_dialog import create_open_file_dialog, create_save_file_dialog
 from .file_format import AIEProject
 from .psd_read import load_psd_as_project
-from .file_dialog import create_open_file_dialog, create_save_file_dialog
 
 __all__ = ("MainWindow",)
 

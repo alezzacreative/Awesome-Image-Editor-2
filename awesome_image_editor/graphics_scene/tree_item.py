@@ -1,7 +1,7 @@
 from typing import List, Protocol, Union
 
 from PyQt6.QtCore import QSize
-from PyQt6.QtGui import QImage, QIcon
+from PyQt6.QtGui import QIcon, QImage
 
 
 class TreeItemProtocol(Protocol):

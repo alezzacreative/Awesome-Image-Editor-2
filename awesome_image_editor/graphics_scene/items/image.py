@@ -1,8 +1,8 @@
 from typing import Optional
 
 from PyQt6.QtCore import QRectF, QSize, Qt
-from PyQt6.QtGui import QPainter, QImage
-from PyQt6.QtWidgets import QStyleOptionGraphicsItem, QWidget, QGraphicsItem
+from PyQt6.QtGui import QImage, QPainter
+from PyQt6.QtWidgets import QGraphicsItem, QStyleOptionGraphicsItem, QWidget
 
 THUMBNAIL_SIZE = QSize(32, 32)
 

@@ -1,13 +1,13 @@
 from PyQt6.QtCore import Qt
 from PyQt6.QtWidgets import (
+    QCheckBox,
     QDialog,
-    QVBoxLayout,
+    QDoubleSpinBox,
     QHBoxLayout,
     QLabel,
-    QDoubleSpinBox,
-    QSlider,
     QPushButton,
-    QCheckBox,
+    QSlider,
+    QVBoxLayout,
 )
 
 

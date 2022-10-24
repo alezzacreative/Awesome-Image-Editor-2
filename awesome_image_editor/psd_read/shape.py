@@ -1,7 +1,6 @@
 from psd_tools.api.layers import ShapeLayer
 from psd_tools.api.shape import Subpath
 from psd_tools.psd.vector import Knot
-
 from PyQt6.QtGui import QPainterPath
 
 from ..graphics_scene.items.shape import AIEShapeItem

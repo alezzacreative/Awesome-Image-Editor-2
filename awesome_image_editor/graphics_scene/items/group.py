@@ -1,10 +1,10 @@
 from PyQt6.QtGui import QPainter
 from PyQt6.QtWidgets import (
-    QStyleOptionGraphicsItem,
-    QWidget,
     QGraphicsItem,
     QGraphicsItemGroup,
     QStyle,
+    QStyleOptionGraphicsItem,
+    QWidget,
 )
 
 

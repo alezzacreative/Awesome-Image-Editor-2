@@ -1,6 +1,7 @@
 from typing import Union
+
+from PyQt6.QtCore import QDir, Qt
 from PyQt6.QtWidgets import QFileDialog
-from PyQt6.QtCore import Qt, QDir
 
 
 def create_file_dialog(

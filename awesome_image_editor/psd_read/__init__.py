@@ -1,6 +1,5 @@
 from psd_tools import PSDImage
 
-
 from ..file_format import AIEProject
 from ..graphics_scene.items.group import AIEGroupItem
 from .pixel import psd_pixel_layer_to_image_item

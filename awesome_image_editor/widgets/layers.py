@@ -2,7 +2,7 @@ from pathlib import PurePath
 
 from PyQt6.QtCore import Qt
 from PyQt6.QtGui import QIcon
-from PyQt6.QtWidgets import QWidget, QToolBar, QVBoxLayout
+from PyQt6.QtWidgets import QToolBar, QVBoxLayout, QWidget
 
 from ..graphics_scene.tree_model import TreeModel
 from ..graphics_scene.view import TreeView

@@ -1,12 +1,12 @@
-from PyQt6.QtCore import Qt, QEvent
+from PyQt6.QtCore import QEvent, Qt
+from PyQt6.QtGui import QFocusEvent, QPainter
 from PyQt6.QtWidgets import (
-    QGraphicsTextItem,
     QGraphicsItem,
+    QGraphicsTextItem,
+    QStyle,
     QStyleOptionGraphicsItem,
     QWidget,
-    QStyle,
 )
-from PyQt6.QtGui import QPainter, QFocusEvent
 
 
 class AIETextItem(QGraphicsTextItem):

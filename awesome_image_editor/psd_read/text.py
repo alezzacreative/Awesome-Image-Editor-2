@@ -1,13 +1,6 @@
 from psd_tools.api.layers import TypeLayer
-
 from PyQt6.QtCore import Qt
-from PyQt6.QtGui import (
-    QTextCharFormat,
-    QTextCursor,
-    QFont,
-    QColor,
-    QTextBlockFormat,
-)
+from PyQt6.QtGui import QColor, QFont, QTextBlockFormat, QTextCharFormat, QTextCursor
 
 from ..graphics_scene.items.text import AIETextItem
 
