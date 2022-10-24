@@ -12,7 +12,7 @@ from psd_tools import PSDImage
 from .file_format import AIEProject
 from .graphics_scene.items.image import AIEImageItem
 from .graphics_scene.items.shape import AIEShapeItem
-from .graphics_scene.items.type import AIETextItem
+from .graphics_scene.items.text import AIETextItem
 
 DEFAULT_PSD_TEXT_FILL_COLOR_DATA = {"Type": 1, "Values": [1, 0, 0, 0]}
 
