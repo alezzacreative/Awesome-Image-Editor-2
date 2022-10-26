@@ -27,7 +27,7 @@ def read_psd_layer(scene, layer, psd_width: int, psd_height: int):
         for child_layer in layer:
             child_item = read_psd_layer(scene, child_layer, psd_width, psd_height)
             if child_item:
-                item.addToGroup(child_item)
+                child_item.setParentItem(item)
 
     if item is not None:
         scene.addItem(item)

@@ -7,9 +7,11 @@ from PyQt6.QtWidgets import (
     QStyleOptionGraphicsItem,
     QWidget,
 )
+from PyQt6.QtCore import QRectF
 
 
-class AIEGroupItem(QGraphicsItemGroup):
+class AIEGroupItem(QGraphicsItem):
+    # NOTE: We do not use a QGraphicsItemGroup because it forces children to have the same selection state as group
     def __init__(self, name: str):
         super().__init__()
         self.name = name
@@ -32,7 +34,7 @@ class AIEGroupItem(QGraphicsItemGroup):
     def paint(
         self, painter: QPainter, option: QStyleOptionGraphicsItem, widget: QWidget
     ) -> None:
-        option.state &= ~QStyle.StateFlag.State_Enabled
-        option.state &= ~QStyle.StateFlag.State_HasFocus
-        option.state &= ~QStyle.StateFlag.State_Selected
-        super().paint(painter, option, widget)
+        ...
+
+    def boundingRect(self) -> QRectF:
+        return self.childrenBoundingRect()
