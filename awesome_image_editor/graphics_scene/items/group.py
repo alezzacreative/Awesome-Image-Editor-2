@@ -2,8 +2,6 @@ from pathlib import PurePath
 from PyQt6.QtGui import QPainter, QIcon
 from PyQt6.QtWidgets import (
     QGraphicsItem,
-    QGraphicsItemGroup,
-    QStyle,
     QStyleOptionGraphicsItem,
     QWidget,
 )

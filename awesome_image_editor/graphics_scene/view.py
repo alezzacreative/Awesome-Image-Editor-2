@@ -1,9 +1,6 @@
-from operator import is_
-from typing import List
-from PyQt6.QtCore import QItemSelection, QItemSelectionModel, QModelIndex, Qt, QRect
-from PyQt6.QtWidgets import QTreeView, QGraphicsItem
+from PyQt6.QtCore import QItemSelectionModel, QModelIndex
+from PyQt6.QtWidgets import QTreeView
 
-from .tree_item import TreeItemProtocol
 from .roles import ItemSelectionRole
 from .tree_model import TreeModel
 
