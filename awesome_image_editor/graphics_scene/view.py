@@ -17,7 +17,7 @@ class TreeView(QTreeView):
         self.setSelectionMode(QTreeView.SelectionMode.ExtendedSelection)
         self.setModel(model)
 
-        # Note: selection model is only available after setting model
+        # NOTE: selection model is only available after setting model
         selection_model = self.selectionModel()
 
         # Connect selection signals:
