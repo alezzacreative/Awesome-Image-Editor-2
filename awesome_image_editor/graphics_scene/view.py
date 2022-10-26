@@ -20,10 +20,6 @@ class TreeView(QTreeView):
         # Note: selection model is only available after setting model
         selection_model = self.selectionModel()
 
-        # Re-sync selection model selection when selection model selection changes
-        # This ensures selection is actually in sync with the graphics scene
-        # even if some graphics items were not selected (e.g. non-selectable graphics items)
-
         # Connect selection signals:
         # NOTE: infinite recursion due to signals connected both ways SHOULD NOT HAPPEN
         # since these callbacks should be connected to signals that only fire when the selection is actually changed
@@ -67,10 +63,6 @@ class TreeView(QTreeView):
         self.selectionModel().select(model_index, command)
 
     def sync_selection_from_selection_model_to_scene(self):
-        # assert len(list(self.iter_model_indices_recursive())) == len(
-        #     set(self.iter_model_indices_recursive())
-        # )
-
         if self._is_selection_locked:
             return
 
@@ -89,9 +81,6 @@ class TreeView(QTreeView):
         self._is_selection_locked = False
 
     def sync_selection_from_scene_to_selection_model(self):
-        # assert len(list(self.iter_model_indices_recursive())) == len(
-        #     set(self.iter_model_indices_recursive())
-        # )
         if self._is_selection_locked:
             return
 
