@@ -1,5 +1,4 @@
-import struct
-from typing import BinaryIO
+from io import BufferedReader, BufferedWriter
 
 from PyQt6.QtCore import QBuffer, QByteArray, QIODevice, Qt
 from PyQt6.QtGui import QImage, QPainter
@@ -9,58 +8,24 @@ from .graphics_scene.graphics_scene import AIEGraphicsScene
 from .graphics_scene.items.image import AIEImageItem
 from .graphics_scene.tree_model import TreeModel
 from .widgets.layers import LayersWidget
+from .binary_io.write import (
+    write_pascal_string,
+    write_uint32_le,
+    write_unicode_string,
+    write_float_le,
+)
+from .binary_io.read import (
+    read_float_le,
+    read_uint32_le,
+    read_pascal_string,
+    read_unicode_string,
+)
 
 MAGIC_BYTES = b"\x89AIE\r\n\x1a\n"  # Similar to PNG magic bytes
 
 # Chunk Types
 LAYERS_CHUNK_TYPE = b"LAYERS"
 IMAGE_CHUNK_TYPE = b"IMAGE"
-
-
-def write_uint32_le(value: int, file: BinaryIO):
-    data = value.to_bytes(4, "little", signed=False)
-    file.write(data)
-
-
-def write_float_le(value: float, file: BinaryIO):
-    file.write(struct.pack("<f", value))
-
-
-def write_pascal_string(string: bytes, file: BinaryIO):
-    write_uint32_le(len(string), file)
-    file.write(string)
-
-
-def write_unicode_string(string: str, file: BinaryIO):
-    data = string.encode("utf-8")
-    write_uint32_le(len(data), file)
-    file.write(data)
-
-
-def read_uint32_le(file: BinaryIO):
-    data = file.read(4)
-    assert len(data) == 4
-    return int.from_bytes(data, "little", signed=False)
-
-
-def read_pascal_string(file: BinaryIO):
-    length = read_uint32_le(file)
-    string = file.read(length)
-    assert len(string) == length
-    return string
-
-
-def read_unicode_string(file: BinaryIO):
-    length = read_uint32_le(file)
-    data = file.read(length)
-    assert len(data) == length
-    return data.decode("utf-8")
-
-
-def read_float_le(file: BinaryIO):
-    data = file.read(4)
-    assert len(data) == 4  # struct should already error out, assert for consistency
-    return struct.unpack("<f", data)[0]
 
 
 class AIEProject:
@@ -104,52 +69,52 @@ class AIEProject:
 
         return image
 
-    def serialize(self, file: BinaryIO):
-        file.write(MAGIC_BYTES)
-        write_pascal_string(LAYERS_CHUNK_TYPE, file)
+    def serialize(self, writer: BufferedWriter):
+        writer.write(MAGIC_BYTES)
+        write_pascal_string(LAYERS_CHUNK_TYPE, writer)
         num_layers = len(self._graphics_scene.items())
-        write_uint32_le(num_layers, file)
+        write_uint32_le(num_layers, writer)
 
         # NOTE: save in back-to-front (AscendingOrder) order to preserve same layer order when importing back
         # TODO: order independent file format? (e.g. save layer index in file?)
         for item in self._graphics_scene.items(Qt.SortOrder.AscendingOrder):
             if isinstance(item, AIEImageItem):
-                write_pascal_string(IMAGE_CHUNK_TYPE, file)
-                write_unicode_string(item.name, file)
+                write_pascal_string(IMAGE_CHUNK_TYPE, writer)
+                write_unicode_string(item.name, writer)
 
-                write_float_le(item.pos().x(), file)
-                write_float_le(item.pos().y(), file)
+                write_float_le(item.pos().x(), writer)
+                write_float_le(item.pos().y(), writer)
 
                 byte_array = QByteArray()
                 buffer = QBuffer(byte_array)
                 buffer.open(QIODevice.OpenModeFlag.WriteOnly)
                 item.image.save(buffer, "PNG")
 
-                write_uint32_le(len(byte_array), file)
-                file.write(byte_array.data())
+                write_uint32_le(len(byte_array), writer)
+                writer.write(byte_array.data())
 
     @staticmethod
-    def deserialize(file: BinaryIO):
-        assert file.read(len(MAGIC_BYTES)) == MAGIC_BYTES
+    def deserialize(reader: BufferedReader):
+        assert reader.read(len(MAGIC_BYTES)) == MAGIC_BYTES
 
         # Expecting layers chunk
-        chunk_type = read_pascal_string(file)
+        chunk_type = read_pascal_string(reader)
         assert chunk_type == LAYERS_CHUNK_TYPE
 
         project = AIEProject()
         scene = project.get_graphics_scene()
-        num_layers = read_uint32_le(file)
+        num_layers = read_uint32_le(reader)
 
         for i in range(num_layers):
-            chunk_type = read_pascal_string(file)
+            chunk_type = read_pascal_string(reader)
 
             if chunk_type == IMAGE_CHUNK_TYPE:
-                layer_name = read_unicode_string(file)
-                x = read_float_le(file)
-                y = read_float_le(file)
+                layer_name = read_unicode_string(reader)
+                x = read_float_le(reader)
+                y = read_float_le(reader)
 
-                image_data_length = read_uint32_le(file)
-                image_data = file.read(image_data_length)
+                image_data_length = read_uint32_le(reader)
+                image_data = reader.read(image_data_length)
                 image = QImage.fromData(image_data, "PNG")
 
                 item = AIEImageItem(image, layer_name)
