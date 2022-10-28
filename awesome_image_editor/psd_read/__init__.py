@@ -1,7 +1,7 @@
 from psd_tools import PSDImage
 
 from ..file_format import AIEProject
-from ..graphics_scene.items.group import AIEGroupItem
+from ..model_view.items.group import AIEGroupItem
 from .pixel import psd_pixel_layer_to_image_item
 from .shape import psd_shape_layer_to_shape_item
 from .text import psd_type_layer_to_text_item

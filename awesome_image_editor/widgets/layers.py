@@ -4,8 +4,8 @@ from PyQt6.QtCore import Qt
 from PyQt6.QtGui import QIcon
 from PyQt6.QtWidgets import QToolBar, QVBoxLayout, QWidget
 
-from ..graphics_scene.tree_model import TreeModel
-from ..graphics_scene.tree_view import TreeView
+from ..model_view.tree_model import TreeModel
+from ..model_view.tree_view import TreeView
 
 
 class LayersWidget(QWidget):

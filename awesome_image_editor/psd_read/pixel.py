@@ -1,6 +1,6 @@
 from psd_tools.api.layers import PixelLayer
 
-from ..graphics_scene.items.image import AIEImageItem
+from ..model_view.items.image import AIEImageItem
 
 
 def psd_pixel_layer_to_image_item(layer: PixelLayer):

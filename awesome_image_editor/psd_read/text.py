@@ -2,7 +2,7 @@ from psd_tools.api.layers import TypeLayer
 from PyQt6.QtCore import Qt
 from PyQt6.QtGui import QColor, QFont, QTextBlockFormat, QTextCharFormat, QTextCursor
 
-from ..graphics_scene.items.text import AIETextItem
+from ..model_view.items.text import AIETextItem
 
 DEFAULT_PSD_TEXT_FILL_COLOR_DATA = {"Type": 1, "Values": [1, 0, 0, 0]}
 

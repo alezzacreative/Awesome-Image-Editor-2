@@ -4,9 +4,9 @@ from PyQt6.QtCore import QBuffer, QByteArray, QIODevice, Qt
 from PyQt6.QtGui import QImage, QPainter
 from PyQt6.QtWidgets import QGraphicsView
 
-from .graphics_scene.graphics_scene import AIEGraphicsScene
-from .graphics_scene.items.image import AIEImageItem
-from .graphics_scene.tree_model import TreeModel
+from .model_view.graphics_scene import AIEGraphicsScene
+from .model_view.items.image import AIEImageItem
+from .model_view.tree_model import TreeModel
 from .widgets.layers import LayersWidget
 from .binary_io.write import (
     write_pascal_string,
