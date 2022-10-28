@@ -20,7 +20,7 @@ class TreeView(QTreeView):
         # Connect selection signals:
         # NOTE: infinite recursion due to signals connected both ways SHOULD NOT HAPPEN
         # since these callbacks should be connected to signals that only fire when the selection is actually changed
-        # (e.g. QItemSelectionModel.selectionChanges and QGraphicsScene.selectionChanged)
+        # (e.g. QItemSelectionModel.selectionChanged and QGraphicsScene.selectionChanged)
         selection_model.selectionChanged.connect(
             self.sync_selection_from_selection_model_to_scene
         )
