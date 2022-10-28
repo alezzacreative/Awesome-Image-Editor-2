@@ -5,6 +5,7 @@ from PyQt6.QtGui import QImage, QPainter
 from PyQt6.QtWidgets import QGraphicsView
 
 from .model_view.graphics_scene import AIEGraphicsScene
+from .model_view.graphics_view import AIEGraphicsView
 from .model_view.items.image import AIEImageItem
 from .model_view.tree_model import TreeModel
 from .widgets.layers import LayersWidget
@@ -32,9 +33,7 @@ class AIEProject:
     def __init__(self):
         self._graphics_scene = AIEGraphicsScene()
         self._graphics_scene_model = TreeModel(self._graphics_scene)
-        self._graphics_view = QGraphicsView(self._graphics_scene)
-        self._graphics_view.setRenderHint(QPainter.RenderHint.Antialiasing, True)
-        self._graphics_view.setDragMode(QGraphicsView.DragMode.RubberBandDrag)
+        self._graphics_view = AIEGraphicsView(self._graphics_scene)
         self._layers_widget = LayersWidget(self._graphics_scene_model)
 
     def add_image_layer(self, image: QImage, layer_name: str):
