@@ -13,12 +13,12 @@ class LayersWidget(QWidget):
         super().__init__()
         self._model = model
         self.list_view = TreeView(model)
-        self.layout = QVBoxLayout()
-        self.layout.addWidget(self.list_view)
-        self.layout.setContentsMargins(0, 0, 0, 0)
+        layout = QVBoxLayout()
+        layout.addWidget(self.list_view)
+        layout.setContentsMargins(0, 0, 0, 0)
 
         self.toolbar = QToolBar()
-        self.layout.addWidget(self.toolbar)
+        layout.addWidget(self.toolbar)
         self.toolbar.setLayoutDirection(Qt.LayoutDirection.RightToLeft)
 
         icon = QIcon(
@@ -27,7 +27,7 @@ class LayersWidget(QWidget):
             ).as_posix()
         )
         self.toolbar.addAction(icon, "Delete", self.delete_selected_items)
-        self.setLayout(self.layout)
+        self.setLayout(layout)
 
     def delete_selected_items(self):
         self._model.beginResetModel()
