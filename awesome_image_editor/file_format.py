@@ -32,8 +32,9 @@ IMAGE_CHUNK_TYPE = b"IMAGE"
 class AIEProject:
     def __init__(self):
         self._graphics_scene = AIEGraphicsScene()
-        self._graphics_scene_model = TreeModel(self._graphics_scene)
         self._graphics_view = AIEGraphicsView(self._graphics_scene)
+
+        self._graphics_scene_model = TreeModel(self._graphics_scene)
         self._layers_widget = LayersWidget(self._graphics_scene_model)
 
     def add_image_layer(self, image: QImage, layer_name: str):
