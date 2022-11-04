@@ -1,6 +1,6 @@
 # Awesome Image Editor
 
-![screen](https://raw.githubusercontent.com/iyadahmed/Awesome-Image-Editor-2/master/awesome_screenshot.png)
+![screen](https://user-images.githubusercontent.com/63913433/200029964-64d68352-e634-4923-a93c-0e3ebadd7923.png)
 
 ## How to run:
 After installing required packages in an environment,  
