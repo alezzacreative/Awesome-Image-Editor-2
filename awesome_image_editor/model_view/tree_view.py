@@ -59,6 +59,8 @@ class TreeView(QTreeView):
 
         self.selectionModel().select(model_index, command)
 
+        return is_selected
+
     def sync_selection_from_selection_model_to_scene(self):
         if self._is_selection_locked:
             return
@@ -86,6 +88,10 @@ class TreeView(QTreeView):
         self._is_selection_locked = True
 
         for model_index in self.iter_model_indices_recursive():
-            self.sync_model_item_selection_to_selection_model(model_index)
+            is_selected = self.sync_model_item_selection_to_selection_model(model_index)
+
+            # Ensure selected item is visible in tree view
+            if is_selected:
+                self.scrollTo(model_index)
 
         self._is_selection_locked = False
