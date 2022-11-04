@@ -5,18 +5,51 @@ from .roles import ItemSelectionRole
 from .tree_item import TreeItemProtocol
 
 
-def child_number(item: TreeItemProtocol):
-    parent = item.parentItem()
-    if parent is not None:
-        return parent.childItems().index(item)
+class RootItemParent:
+    ...
 
-    return 0
+
+class RootItem:
+    """A proxy class to provide a root item for graphics scene"""
+
+    def __init__(self, scene: AIEGraphicsScene):
+        self.name = ""
+        self._scene = scene
+
+    def parentItem(self):
+        return RootItemParent
+
+    def get_thumbnail(self):
+        ...
+
+    def get_size_hint(self):
+        ...
+
+    def isSelected(self) -> bool:
+        ...
+
+    def setSelected(self, value: bool):
+        ...
+
+    def childItems(self):
+        return [
+            item
+            for item in self._scene.items(order=Qt.SortOrder.DescendingOrder)
+            if item.parentItem() is None
+        ]
+
+    def isVisible(self) -> bool:
+        ...
+
+    def setVisible(self, value: bool):
+        ...
 
 
 class TreeModel(QAbstractItemModel):
     def __init__(self, scene: AIEGraphicsScene, parent=None):
         super().__init__(parent)
         self._scene = scene
+        self._root_item = RootItem(scene)
 
         scene.itemAboutToBeAppended.connect(
             lambda i: self.beginInsertRows(QModelIndex(), i, i)
@@ -100,42 +133,40 @@ class TreeModel(QAbstractItemModel):
 
         parentItem = self.getItem(parent)
         if parentItem is None:
-            childItem = self.getIthTopLevelItem(row)
-        else:
-            childItem = parentItem.childItems()[row]
+            parentItem = self._root_item
+
+        childItem = parentItem.childItems()[row]
 
         return self.createIndex(row, column, childItem)
 
+    def row(self, item: TreeItemProtocol):
+        parentItem = item.parentItem()
+        if parentItem is None:
+            parentItem = self._root_item
+
+        if not isinstance(parentItem, RootItemParent):
+            return parentItem.childItems().index(item)  # type: ignore
+
+        return 0
+
     def parent(self, index: QModelIndex):
-        child_item = self.getItem(index)
-
-        if child_item is None:
+        if not index.isValid():
             return QModelIndex()
 
-        parent_item = child_item.parentItem()
+        childItem = index.internalPointer()
+        parentItem = childItem.parentItem()
 
-        if parent_item is None:
-            # is root item
+        if parentItem is None:
+            # parent is root
             return QModelIndex()
 
-        return self.createIndex(child_number(parent_item), 0, parent_item)
-
-    def getIthTopLevelItem(self, i: int):
-        iterator = (
-            item
-            for item in self._scene.items(order=Qt.SortOrder.DescendingOrder)
-            if item.parentItem() is None
-        )
-        item = None
-        for _ in range(i + 1):
-            item = next(iterator)
-        return item
+        return self.createIndex(self.row(parentItem), 0, parentItem)
 
     def rowCount(self, parent=QModelIndex()):
         parentItem = self.getItem(parent)
 
         if parentItem is None:
             # root, return number of scene top level items
-            return sum(1 for item in self._scene.items() if item.parentItem() is None)
+            return len(self._root_item.childItems())
         else:
             return len(parentItem.childItems())
