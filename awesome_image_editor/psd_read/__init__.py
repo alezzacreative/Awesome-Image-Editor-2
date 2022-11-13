@@ -25,8 +25,9 @@ def read_psd_layer(scene, layer, psd_width: int, psd_height: int):
         item = AIEGroupItem(layer.name)
 
         for child_layer in layer:
-            child_item = read_psd_layer(scene, child_layer, psd_width, psd_height)
-            if child_item:
+            if child_item := read_psd_layer(
+                scene, child_layer, psd_width, psd_height
+            ):
                 child_item.setParentItem(item)
 
     if item is not None:
