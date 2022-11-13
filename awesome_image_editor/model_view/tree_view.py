@@ -37,7 +37,7 @@ class TreeView(QTreeView):
         root_model_index = QModelIndex()
         model_indices_stack = [root_model_index]
 
-        while len(model_indices_stack) > 0:
+        while model_indices_stack:
             model_index = model_indices_stack.pop(0)
 
             for i in range(self.model().rowCount(model_index)):
@@ -88,10 +88,9 @@ class TreeView(QTreeView):
         self._is_selection_locked = True
 
         for model_index in self.iter_model_indices_recursive():
-            is_selected = self.sync_model_item_selection_to_selection_model(model_index)
-
-            # Ensure selected item is visible in tree view
-            if is_selected:
+            if is_selected := self.sync_model_item_selection_to_selection_model(
+                model_index
+            ):
                 self.scrollTo(model_index)
 
         self._is_selection_locked = False
