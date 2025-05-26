@@ -20,7 +20,7 @@ from .file_format import AIEProject
 from .psd_read import load_psd_as_project
 from .model_view.graphics_view import AIEGraphicsView # Add this import
 from .model_view.items.image import AIEImageItem # Import for type checking
-from .image_processing import apply_brightness_contrast, apply_grayscale, apply_sepia # Add apply_sepia
+from .image_processing import apply_brightness_contrast, apply_grayscale, apply_sepia, apply_invert_colors # Add apply_invert_colors
 
 __all__ = ("MainWindow",)
 
@@ -211,7 +211,50 @@ class MainWindow(QMainWindow):
         sepia_action = menu.addAction("Sepia")
         sepia_action.triggered.connect(self.apply_sepia_filter)
         
+        invert_colors_action = menu.addAction("Invert Colors")
+        invert_colors_action.triggered.connect(self.apply_invert_colors_filter)
+        
         self.menuBar().addMenu(menu)
+
+    def apply_invert_colors_filter(self):
+        # Basic validation (copied from previous filter slots)
+        if not self._project: 
+            QMessageBox.information(self, "Information", "No project open.")
+            return
+            
+        scene = self._project.get_graphics_scene()
+        if not scene: 
+            QMessageBox.information(self, "Information", "No scene available in the project.")
+            return
+
+        selected_items = scene.selectedItems()
+        if not selected_items:
+            QMessageBox.information(self, "Information", "Please select an image layer first.")
+            return
+        
+        if len(selected_items) > 1:
+            QMessageBox.information(self, "Information", "Please select only one image layer.")
+            return
+
+        current_item = selected_items[0]
+        if not isinstance(current_item, AIEImageItem):
+            QMessageBox.information(self, "Information", "Invert Colors can only be applied to image layers.")
+            return
+
+        # print(f"Applying Invert Colors to layer: {current_item.name}") # This line can be removed or kept for debugging
+
+        original_image = current_item.image
+        if original_image.isNull():
+            QMessageBox.warning(self, "Warning", "The selected layer does not contain valid image data.")
+            return
+
+        modified_image = apply_invert_colors(original_image)
+        
+        if not modified_image.isNull():
+            current_item.setImage(modified_image) # Use existing setImage method
+            print(f"Invert Colors filter applied to layer: {current_item.name}")
+        else:
+            QMessageBox.warning(self, "Error", "Failed to apply Invert Colors filter.")
 
     def apply_sepia_filter(self):
         # Basic validation (copied from apply_grayscale_filter)

@@ -160,4 +160,32 @@ def test_apply_sepia_filter_no_selection(main_window_mock): # Assuming main_wind
 # The other validation tests (multiple_selection, not_image_item, null_original_image, processing_fails)
 # can be added for apply_sepia_filter similarly if desired for full coverage,
 # but they would be very similar to the grayscale ones.
+
+# --- Invert Colors Filter Slot Test ---
+def test_apply_invert_colors_filter_success(main_window_mock, sample_aie_item_mock):
+    # main_window_mock and sample_aie_item_mock fixtures should be defined
+    
+    main_window_mock._project.get_graphics_scene().selectedItems.return_value = [sample_aie_item_mock]
+    # Reset image on sample_aie_item_mock for this test
+    sample_aie_item_mock.image = QImage(10,10,QImage.Format.Format_ARGB32) 
+    original_qimage = sample_aie_item_mock.image
+    
+    with patch('awesome_image_editor.mainwindow.apply_invert_colors') as mock_process_func:
+        mock_modified_qimage = QImage(10,10,QImage.Format.Format_ARGB32) # Dummy modified
+        mock_process_func.return_value = mock_modified_qimage
+        
+        main_window_mock.apply_invert_colors_filter()
+        
+        mock_process_func.assert_called_once_with(original_qimage)
+        sample_aie_item_mock.setImage.assert_called_once_with(mock_modified_qimage)
+
+def test_apply_invert_colors_filter_no_selection(main_window_mock): 
+    main_window_mock._project.get_graphics_scene().selectedItems.return_value = []
+    with patch('awesome_image_editor.mainwindow.QMessageBox.information') as mock_msg_box:
+        main_window_mock.apply_invert_colors_filter()
+        mock_msg_box.assert_called_once()
+        
+# (Validation for project, scene, multiple items, wrong item type in apply_invert_colors_filter
+# are identical to previous filters. If those are tested generically for filter slots,
+# these specific tests for no_selection might be redundant but are good for clarity.)
 ```

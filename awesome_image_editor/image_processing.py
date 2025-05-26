@@ -120,4 +120,19 @@ def apply_sepia(original_image: QImage) -> QImage:
             processed_image.setPixelColor(x, y, QColor(r_sepia, g_sepia, b_sepia, a))
             
     return processed_image
+
+# In awesome_image_editor/image_processing.py
+
+def apply_invert_colors(original_image: QImage) -> QImage:
+    if original_image.isNull():
+        return QImage()
+
+    # Create a deep copy to modify
+    # invertPixels modifies the image in-place, so a copy is essential.
+    processed_image = original_image.copy()
+    
+    # Invert RGB channels, leave Alpha as is.
+    processed_image.invertPixels(QImage.InvertMode.InvertRgb)
+            
+    return processed_image
 ```

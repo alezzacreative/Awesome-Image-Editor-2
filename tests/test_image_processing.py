@@ -2,7 +2,7 @@ import pytest
 from PyQt6.QtGui import QImage, QColor
 
 # Adjust import path as necessary
-from awesome_image_editor.image_processing import apply_brightness_contrast, clamp, apply_grayscale, apply_sepia # Added apply_sepia
+from awesome_image_editor.image_processing import apply_brightness_contrast, clamp, apply_grayscale, apply_sepia, apply_invert_colors # Added apply_invert_colors
 
 # --- Clamp Tests (Optional but good practice) ---
 def test_clamp():
@@ -220,5 +220,59 @@ def test_apply_sepia_max_values_clamp():
 def test_apply_sepia_null_image():
     null_img = QImage()
     modified_image = apply_sepia(null_img)
+    assert modified_image.isNull()
+
+# --- Apply Invert Colors Tests ---
+# sample_color_image_gs can be reused, or define a new one.
+# Let's use sample_color_image_gs:
+# Px0: QColor(100, 150, 200, 255) -> Expected Invert: (155, 105, 55, 255)
+# Px1: QColor(50, 70, 90, 128)   -> Expected Invert: (205, 185, 165, 128)
+
+def test_apply_invert_colors_conversion(sample_color_image_gs): # Reuses fixture
+    modified_image = apply_invert_colors(sample_color_image_gs)
+    assert not modified_image.isNull()
+    assert modified_image.size() == sample_color_image_gs.size()
+    # invertPixels preserves original format if possible, but copy() might convert.
+    # The function uses copy() then invertPixels(). copy() preserves format.
+    # So, format should be same as sample_color_image_gs.
+    assert modified_image.format() == sample_color_image_gs.format()
+
+    # Pixel 0: QColor(100, 150, 200, 255)
+    px0_color = modified_image.pixelColor(0, 0)
+    assert px0_color.red() == 255 - 100
+    assert px0_color.green() == 255 - 150
+    assert px0_color.blue() == 255 - 200
+    assert px0_color.alpha() == 255 # Alpha preserved
+
+    # Pixel 1: QColor(50, 70, 90, 128)
+    px1_color = modified_image.pixelColor(1, 0)
+    assert px1_color.red() == 255 - 50
+    assert px1_color.green() == 255 - 70
+    assert px1_color.blue() == 255 - 90
+    assert px1_color.alpha() == 128 # Alpha preserved
+
+def test_apply_invert_colors_black_and_white():
+    img = QImage(2, 1, QImage.Format.Format_ARGB32_Premultiplied)
+    img.setPixelColor(0, 0, QColor(0, 0, 0, 255))     # Black
+    img.setPixelColor(1, 0, QColor(255, 255, 255, 128)) # White with alpha
+
+    modified_image = apply_invert_colors(img)
+    
+    px_black_inverted = modified_image.pixelColor(0,0)
+    assert px_black_inverted.red() == 255
+    assert px_black_inverted.green() == 255
+    assert px_black_inverted.blue() == 255
+    assert px_black_inverted.alpha() == 255
+    
+    px_white_inverted = modified_image.pixelColor(1,0)
+    assert px_white_inverted.red() == 0
+    assert px_white_inverted.green() == 0
+    assert px_white_inverted.blue() == 0
+    assert px_white_inverted.alpha() == 128
+
+
+def test_apply_invert_colors_null_image():
+    null_img = QImage()
+    modified_image = apply_invert_colors(null_img)
     assert modified_image.isNull()
 ```
