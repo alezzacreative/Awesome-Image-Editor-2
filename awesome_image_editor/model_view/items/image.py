@@ -12,8 +12,32 @@ class AIEImageItem(QGraphicsItem):
         super().__init__()
         self.name = name
         self.image = image
+        self.mask = None  # Initialize mask
+        self._opacity = 1.0 # Initialize opacity
         self.setFlag(QGraphicsItem.GraphicsItemFlag.ItemIsSelectable, True)
         self.setFlag(QGraphicsItem.GraphicsItemFlag.ItemIsMovable, True)
+
+    def setOpacity(self, opacity: float):
+        """Sets the opacity of the layer. Value is clamped between 0.0 and 1.0."""
+        self._opacity = max(0.0, min(1.0, opacity))
+        self.update() # Schedule a repaint
+
+    def opacity(self) -> float:
+        """Returns the current opacity of the layer."""
+        return self._opacity
+
+    def set_mask(self, mask_image: QImage):
+        """Sets the layer mask for this item."""
+        self.mask = mask_image
+        self.update()  # Schedule a repaint
+
+    def get_mask(self) -> QImage | None:
+        """Returns the layer mask image, or None if no mask is set."""
+        return self.mask
+
+    def has_mask(self) -> bool:
+        """Returns True if a layer mask is set, False otherwise."""
+        return self.mask is not None
 
     def get_thumbnail(self):
         return self.image.scaled(
@@ -34,4 +58,7 @@ class AIEImageItem(QGraphicsItem):
         option: QStyleOptionGraphicsItem,
         widget: Optional[QWidget] = ...,
     ) -> None:
+        previous_opacity = painter.opacity()
+        painter.setOpacity(self._opacity)
         painter.drawImage(self.boundingRect(), self.image)
+        painter.setOpacity(previous_opacity)
