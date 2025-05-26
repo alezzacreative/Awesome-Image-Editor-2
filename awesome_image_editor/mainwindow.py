@@ -10,12 +10,14 @@ from PyQt6.QtWidgets import (
     QMenu,
     QMessageBox,
     QToolBar,
+    QLabel, # Ensure QLabel is imported
 )
 
 from .dialogs.gaussian_blur import GaussianBlurDialog
 from .file_dialog import create_open_file_dialog, create_save_file_dialog
 from .file_format import AIEProject
 from .psd_read import load_psd_as_project
+from .model_view.graphics_view import AIEGraphicsView # Add this import
 
 __all__ = ("MainWindow",)
 
@@ -24,6 +26,10 @@ class MainWindow(QMainWindow):
     def __init__(self):
         super().__init__()
         self.setWindowTitle("Awesome Image Editor")
+
+        self.zoom_status_label = QLabel("Zoom: 100.0%")
+        self.statusBar().addPermanentWidget(self.zoom_status_label)
+
         self.setup_file_menu()
         self.setup_filters_menu()
 
@@ -35,6 +41,11 @@ class MainWindow(QMainWindow):
         )
 
         self._project = AIEProject()
+        initial_view = self._project.get_graphics_view()
+        if initial_view: # Should always exist
+            initial_view.zoom_level_changed.connect(self.update_zoom_status)
+            initial_view.emit_current_zoom_level() # Request initial emit
+            
         self.setCentralWidget(self._project.get_graphics_view())
         self.layers_dock_widget.setWidget(self._project.get_layers_widget())
 
@@ -49,10 +60,30 @@ class MainWindow(QMainWindow):
 
         self.showMaximized()
 
+    def update_zoom_status(self, scale_factor: float):
+        self.zoom_status_label.setText(f"Zoom: {scale_factor * 100:.1f}%")
+
     def set_project(self, project: AIEProject):
-        self._project = project
-        self.setCentralWidget(self._project.get_graphics_view())
+        # Disconnect from the old project's view's signal
+        # Check if self._project exists and has a view first
+        if hasattr(self, '_project') and self._project:
+            old_view = self._project.get_graphics_view()
+            if old_view and isinstance(old_view, AIEGraphicsView):
+                try:
+                    old_view.zoom_level_changed.disconnect(self.update_zoom_status)
+                except TypeError: # indicates not connected or already disconnected
+                    pass
+        
+        self._project = project # project is a new AIEProject instance
+        
+        new_view = self._project.get_graphics_view()
+        self.setCentralWidget(new_view) # Set the new view as central widget
         self.layers_dock_widget.setWidget(self._project.get_layers_widget())
+
+        # Connect to the new project's view's signal
+        if new_view: # Should always be true if project is valid
+            new_view.zoom_level_changed.connect(self.update_zoom_status)
+            new_view.emit_current_zoom_level() # Request emit for new project's view
 
     def get_project(self):
         return self._project

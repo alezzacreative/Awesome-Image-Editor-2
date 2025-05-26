@@ -180,6 +180,7 @@ class LayersWidget(QWidget):
         for item in scene.selectedItems():
             scene.removeItem(item)
         self._model.endResetModel()
+        scene.setSceneRect(scene.itemsBoundingRect())
 
     def duplicate_selected_layer(self):
         selected_graphics_items = self._model.scene().selectedItems()
@@ -212,10 +213,13 @@ class LayersWidget(QWidget):
                 except AttributeError: pass
                 print(f"Skipping non-image layer: {item_name}")
         
+        scene = self._model.scene() # Get scene reference
         if newly_added_items:
-            self._model.scene().clearSelection()
+            scene.clearSelection()
             if newly_added_items: 
                 newly_added_items[-1].setSelected(True) 
+        
+        scene.setSceneRect(scene.itemsBoundingRect())
         # Selection has changed, so update controls
         self._update_opacity_controls_from_selection()
 
@@ -361,6 +365,7 @@ class LayersWidget(QWidget):
         # Post-Merge Actions
         scene.clearSelection()
         new_merged_item.setSelected(True)
+        scene.setSceneRect(scene.itemsBoundingRect()) # Update sceneRect after merge
         self._update_opacity_controls_from_selection() # Update UI based on new selection
 
         print(f"Successfully merged '{top_layer.name}' and '{bottom_layer.name}' into '{new_merged_item.name}'.")
