@@ -85,4 +85,39 @@ def apply_grayscale(original_image: QImage) -> QImage:
             processed_image.setPixelColor(x, y, QColor(gray, gray, gray, a))
             
     return processed_image
+
+# In awesome_image_editor/image_processing.py
+
+def apply_sepia(original_image: QImage) -> QImage:
+    if original_image.isNull():
+        return QImage()
+
+    # Create a deep copy to modify, ensuring it supports alpha
+    processed_image = original_image.convertToFormat(QImage.Format.Format_ARGB32_Premultiplied)
+
+    width = processed_image.width()
+    height = processed_image.height()
+
+    for y in range(height):
+        for x in range(width):
+            pixel_color = processed_image.pixelColor(x, y)
+            
+            r_orig = pixel_color.red()
+            g_orig = pixel_color.green()
+            b_orig = pixel_color.blue()
+            a = pixel_color.alpha()
+
+            # Standard Sepia formula weights
+            new_r = (r_orig * 0.393) + (g_orig * 0.769) + (b_orig * 0.189)
+            new_g = (r_orig * 0.349) + (g_orig * 0.686) + (b_orig * 0.168)
+            new_b = (r_orig * 0.272) + (g_orig * 0.534) + (b_orig * 0.131)
+            
+            # Clamp values to 0-255
+            r_sepia = clamp(int(new_r))
+            g_sepia = clamp(int(new_g))
+            b_sepia = clamp(int(new_b))
+
+            processed_image.setPixelColor(x, y, QColor(r_sepia, g_sepia, b_sepia, a))
+            
+    return processed_image
 ```

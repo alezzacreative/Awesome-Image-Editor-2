@@ -2,7 +2,7 @@ import pytest
 from PyQt6.QtGui import QImage, QColor
 
 # Adjust import path as necessary
-from awesome_image_editor.image_processing import apply_brightness_contrast, clamp, apply_grayscale # Added apply_grayscale
+from awesome_image_editor.image_processing import apply_brightness_contrast, clamp, apply_grayscale, apply_sepia # Added apply_sepia
 
 # --- Clamp Tests (Optional but good practice) ---
 def test_clamp():
@@ -163,5 +163,62 @@ def test_apply_grayscale_already_gray(sample_image_bc): # Uses mid-gray image fr
 def test_apply_grayscale_null_image():
     null_img = QImage()
     modified_image = apply_grayscale(null_img)
+    assert modified_image.isNull()
+
+# --- Apply Sepia Tests ---
+# sample_color_image_gs can be reused or a new one defined if different colors are better.
+# Let's use the one from grayscale tests: QColor(100, 150, 200, 255) for pixel (0,0)
+# and QColor(50, 70, 90, 128) for pixel (1,0)
+
+def test_apply_sepia_conversion(sample_color_image_gs): # Reuses fixture from grayscale tests
+    modified_image = apply_sepia(sample_color_image_gs)
+    assert not modified_image.isNull()
+    assert modified_image.size() == sample_color_image_gs.size()
+    assert modified_image.format() == QImage.Format.Format_ARGB32_Premultiplied
+
+    # Pixel 1: QColor(100, 150, 200, 255) (R=100, G=150, B=200)
+    # Expected sepia:
+    # new_r = (100 * 0.393) + (150 * 0.769) + (200 * 0.189) = 39.3 + 115.35 + 37.8 = 192.45 -> 192
+    # new_g = (100 * 0.349) + (150 * 0.686) + (200 * 0.168) = 34.9 + 102.9 + 33.6 = 171.4 -> 171
+    # new_b = (100 * 0.272) + (150 * 0.534) + (200 * 0.131) = 27.2 + 80.1 + 26.2 = 133.5 -> 133
+    
+    px1_color = modified_image.pixelColor(0, 0)
+    assert px1_color.red() == 192
+    assert px1_color.green() == 171
+    assert px1_color.blue() == 133
+    assert px1_color.alpha() == 255 # Alpha preserved
+
+    # Pixel 2: QColor(50, 70, 90, 128) (R=50, G=70, B=90)
+    # Expected sepia:
+    # new_r = (50 * 0.393) + (70 * 0.769) + (90 * 0.189) = 19.65 + 53.83 + 17.01 = 90.49 -> 90
+    # new_g = (50 * 0.349) + (70 * 0.686) + (90 * 0.168) = 17.45 + 48.02 + 15.12 = 80.59 -> 81
+    # new_b = (50 * 0.272) + (70 * 0.534) + (90 * 0.131) = 13.6 + 37.38 + 11.79 = 62.77 -> 63
+
+    px2_color = modified_image.pixelColor(1, 0)
+    assert px2_color.red() == 90
+    assert px2_color.green() == 81 # Corrected based on sum then int
+    assert px2_color.blue() == 63 # Corrected based on sum then int
+    assert px2_color.alpha() == 128 # Alpha preserved
+
+def test_apply_sepia_max_values_clamp():
+    # Test with values that would exceed 255 after sepia calculation
+    # e.g., R=255, G=255, B=255 (white)
+    # new_r = (255 * 0.393) + (255 * 0.769) + (255 * 0.189) = 255 * (0.393+0.769+0.189) = 255 * 1.351 = 344.505 -> 255 (clamped)
+    # new_g = (255 * 0.349) + (255 * 0.686) + (255 * 0.168) = 255 * (0.349+0.686+0.168) = 255 * 1.203 = 306.765 -> 255 (clamped)
+    # new_b = (255 * 0.272) + (255 * 0.534) + (255 * 0.131) = 255 * (0.272+0.534+0.131) = 255 * 0.937 = 238.935 -> 238 (clamped)
+    img = QImage(1, 1, QImage.Format.Format_ARGB32_Premultiplied)
+    img.setPixelColor(0, 0, QColor(255, 255, 255, 255)) # White
+    
+    modified_image = apply_sepia(img)
+    px_color = modified_image.pixelColor(0, 0)
+    
+    assert px_color.red() == 255
+    assert px_color.green() == 255
+    assert px_color.blue() == 238
+    assert px_color.alpha() == 255
+
+def test_apply_sepia_null_image():
+    null_img = QImage()
+    modified_image = apply_sepia(null_img)
     assert modified_image.isNull()
 ```
