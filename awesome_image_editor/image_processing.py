@@ -7,29 +7,15 @@ def apply_brightness_contrast(original_image: QImage, brightness: int, contrast:
     if original_image.isNull():
         return QImage()
 
-    # Create a deep copy to modify
     new_image = original_image.copy()
-    # Ensure the image format supports per-pixel alpha, if not convert.
-    # Most loaded images (PNG) will. Format_ARGB32 is safe.
-    if new_image.format() != QImage.Format.Format_ARGB32 and \
-       new_image.format() != QImage.Format.Format_ARGB32_Premultiplied:
+    if new_image.format() != QImage.Format.Format_ARGB32 and        new_image.format() != QImage.Format.Format_ARGB32_Premultiplied:
         new_image = new_image.convertToFormat(QImage.Format.Format_ARGB32_Premultiplied)
 
-
-    # Brightness: value is -100 to 100.
-    # Map brightness value (e.g. -100 to 100) to a pixel change (e.g. -128 to 128)
     brightness_offset = int((brightness / 100.0) * 128)
 
-
-    # Contrast: value is -100 to 100.
-    # We'll use an adjusted factor:
-    # If contrast is -100, factor = 0. If 0, factor = 1. If 100, factor = 2.
-    # This provides a range from no contrast (all gray) to double contrast.
     if contrast >= 0:
-        # For C in [0, 100], factor from 1.0 to 2.0
         contrast_factor_adj = 1.0 + (contrast / 100.0) 
-    else: # contrast < 0
-        # For C in [-100, 0), factor from 0.0 to 1.0 (exclusive of 1.0)
+    else: 
         contrast_factor_adj = (100.0 + contrast) / 100.0
         
     width = new_image.width()
@@ -38,100 +24,68 @@ def apply_brightness_contrast(original_image: QImage, brightness: int, contrast:
     for y in range(height):
         for x in range(width):
             pixel_color = new_image.pixelColor(x, y)
-            
             r, g, b, a = pixel_color.red(), pixel_color.green(), pixel_color.blue(), pixel_color.alpha()
-
-            # Apply Brightness
             r_bright = clamp(r + brightness_offset)
             g_bright = clamp(g + brightness_offset)
             b_bright = clamp(b + brightness_offset)
-
-            # Apply Contrast (around mid-point 128)
             r_contrast = clamp(int(128 + contrast_factor_adj * (r_bright - 128)))
             g_contrast = clamp(int(128 + contrast_factor_adj * (g_bright - 128)))
             b_contrast = clamp(int(128 + contrast_factor_adj * (b_bright - 128)))
-            
             new_image.setPixelColor(x, y, QColor(r_contrast, g_contrast, b_contrast, a))
             
     return new_image
-
-# In awesome_image_editor/image_processing.py
 
 def apply_grayscale(original_image: QImage) -> QImage:
     if original_image.isNull():
         return QImage()
 
-    # Create a deep copy to modify, ensuring it supports alpha
     processed_image = original_image.convertToFormat(QImage.Format.Format_ARGB32_Premultiplied)
-
     width = processed_image.width()
     height = processed_image.height()
 
     for y in range(height):
         for x in range(width):
             pixel_color = processed_image.pixelColor(x, y)
-            
             r = pixel_color.red()
             g = pixel_color.green()
             b = pixel_color.blue()
             a = pixel_color.alpha()
-
-            # Luminosity method for grayscale
             gray = int(0.299 * r + 0.587 * g + 0.114 * b)
-            
-            # Clamp gray value just in case of floating point inaccuracies, though unlikely here
-            gray = clamp(gray) # Uses the existing clamp function
-
+            gray = clamp(gray)
             processed_image.setPixelColor(x, y, QColor(gray, gray, gray, a))
             
     return processed_image
-
-# In awesome_image_editor/image_processing.py
 
 def apply_sepia(original_image: QImage) -> QImage:
     if original_image.isNull():
         return QImage()
 
-    # Create a deep copy to modify, ensuring it supports alpha
     processed_image = original_image.convertToFormat(QImage.Format.Format_ARGB32_Premultiplied)
-
     width = processed_image.width()
     height = processed_image.height()
 
     for y in range(height):
         for x in range(width):
             pixel_color = processed_image.pixelColor(x, y)
-            
             r_orig = pixel_color.red()
             g_orig = pixel_color.green()
             b_orig = pixel_color.blue()
             a = pixel_color.alpha()
-
-            # Standard Sepia formula weights
             new_r = (r_orig * 0.393) + (g_orig * 0.769) + (b_orig * 0.189)
             new_g = (r_orig * 0.349) + (g_orig * 0.686) + (b_orig * 0.168)
             new_b = (r_orig * 0.272) + (g_orig * 0.534) + (b_orig * 0.131)
-            
-            # Clamp values to 0-255
             r_sepia = clamp(int(new_r))
             g_sepia = clamp(int(new_g))
             b_sepia = clamp(int(new_b))
-
             processed_image.setPixelColor(x, y, QColor(r_sepia, g_sepia, b_sepia, a))
             
     return processed_image
-
-# In awesome_image_editor/image_processing.py
 
 def apply_invert_colors(original_image: QImage) -> QImage:
     if original_image.isNull():
         return QImage()
 
-    # Create a deep copy to modify
-    # invertPixels modifies the image in-place, so a copy is essential.
     processed_image = original_image.copy()
-    
-    # Invert RGB channels, leave Alpha as is.
     processed_image.invertPixels(QImage.InvertMode.InvertRgb)
             
     return processed_image
