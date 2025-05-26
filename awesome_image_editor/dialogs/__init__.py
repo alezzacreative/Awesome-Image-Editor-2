@@ -1,0 +1,2 @@
+from .gaussian_blur import GaussianBlurDialog
+from .brightness_contrast_dialog import BrightnessContrastDialog

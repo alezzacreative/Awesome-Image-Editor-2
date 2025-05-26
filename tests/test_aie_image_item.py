@@ -2,7 +2,7 @@ import pytest
 from unittest.mock import Mock, call # For checking if self.update() is called
 
 from PyQt6.QtGui import QImage, QPainter, QColor # QColor for filling mask for testing
-from PyQt6.QtCore import QSize
+from PyQt6.QtCore import QSize, QRectF # Added QRectF for bounding rect comparison
 
 # Adjust the import path based on your project structure.
 # This assumes 'awesome_image_editor' is a top-level package.
@@ -16,7 +16,10 @@ def sample_image():
 @pytest.fixture
 def image_item(sample_image):
     # Creates an AIEImageItem with a sample image and name
-    return AIEImageItem(sample_image, "Test Layer")
+    item = AIEImageItem(sample_image, "Test Layer")
+    # Mock methods that might be called internally and are not part of the test's focus
+    item.prepareGeometryChange = Mock() 
+    return item
 
 def test_aieimageitem_initialization(image_item, sample_image):
     assert image_item.name == "Test Layer"
@@ -95,3 +98,31 @@ def test_paint_opacity_application(image_item):
         pytest.fail(f"Expected painter calls not found in the correct order. Calls: {painter.method_calls}")
 
 # (Future: Add test for paint with mask when mask rendering is implemented)
+
+# --- setImage Tests ---
+def test_aieimageitem_set_image_same_size(image_item): # Uses existing image_item fixture
+    image_item.update = Mock() # Mock self.update()
+    # image_item.prepareGeometryChange = Mock() # Already mocked in fixture
+
+    # New image with same dimensions as the one in the fixture
+    new_img = QImage(image_item.image.size(), QImage.Format.Format_RGB16) 
+    
+    image_item.setImage(new_img)
+    
+    assert image_item.image == new_img
+    image_item.update.assert_called_once()
+    image_item.prepareGeometryChange.assert_not_called() # Size did not change
+
+def test_aieimageitem_set_image_different_size(image_item):
+    image_item.update = Mock()
+    # image_item.prepareGeometryChange = Mock() # Already mocked in fixture
+
+    # New image with different dimensions
+    new_img = QImage(20, 30, QImage.Format.Format_RGB16) 
+    
+    image_item.setImage(new_img)
+    
+    assert image_item.image == new_img
+    image_item.update.assert_called_once()
+    image_item.prepareGeometryChange.assert_called_once() # Size changed
+```

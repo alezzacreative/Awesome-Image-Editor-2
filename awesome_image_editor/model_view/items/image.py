@@ -62,3 +62,14 @@ class AIEImageItem(QGraphicsItem):
         painter.setOpacity(self._opacity)
         painter.drawImage(self.boundingRect(), self.image)
         painter.setOpacity(previous_opacity)
+
+    def setImage(self, image: QImage):
+        # Check if image dimensions changed to call prepareGeometryChange
+        current_rect = self.boundingRect()
+        self.image = image # Direct replacement
+        new_rect = self.boundingRect()
+        
+        if current_rect != new_rect:
+           self.prepareGeometryChange() # If image size can change by filter
+        
+        self.update() # Schedule a repaint

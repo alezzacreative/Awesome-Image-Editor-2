@@ -14,10 +14,13 @@ from PyQt6.QtWidgets import (
 )
 
 from .dialogs.gaussian_blur import GaussianBlurDialog
+from .dialogs import BrightnessContrastDialog # Updated import
 from .file_dialog import create_open_file_dialog, create_save_file_dialog
 from .file_format import AIEProject
 from .psd_read import load_psd_as_project
 from .model_view.graphics_view import AIEGraphicsView # Add this import
+from .model_view.items.image import AIEImageItem # Import for type checking
+from .image_processing import apply_brightness_contrast # Added image processing import
 
 __all__ = ("MainWindow",)
 
@@ -198,4 +201,46 @@ class MainWindow(QMainWindow):
     def setup_filters_menu(self):
         menu = QMenu("Filters", self)
         menu.addAction("Gaussian Blur", self.add_gaussian_blur_to_selected_layer)
+        
+        brightness_contrast_action = menu.addAction("Brightness/Contrast...")
+        brightness_contrast_action.triggered.connect(self.open_brightness_contrast_dialog)
+        
         self.menuBar().addMenu(menu)
+
+    def open_brightness_contrast_dialog(self):
+        scene = self._project.get_graphics_scene()
+        selected_items = scene.selectedItems()
+
+        if not selected_items:
+            QMessageBox.information(self, "Information", "Please select an image layer first.")
+            return
+
+        if len(selected_items) > 1:
+            QMessageBox.information(self, "Information", "Please select only one image layer.")
+            return
+            
+        current_item = selected_items[0]
+        if not isinstance(current_item, AIEImageItem):
+            QMessageBox.information(self, "Information", "Brightness/Contrast can only be applied to image layers.")
+            return
+        
+        dialog = BrightnessContrastDialog(self) # Pass parent
+        # Optional: Set initial dialog values from item if needed in future, e.g. dialog.set_values(...)
+        
+        if dialog.exec(): # This shows the dialog modally
+            values = dialog.get_values()
+            brightness = values["brightness"]
+            contrast = values["contrast"]
+            
+            original_image = current_item.image
+            modified_image = apply_brightness_contrast(original_image, brightness, contrast)
+            
+            if not modified_image.isNull():
+                current_item.setImage(modified_image)
+                # Note: The TreeView thumbnail update is a potential refinement.
+                # For now, the main scene item updates.
+                print(f"Applied Brightness: {brightness}, Contrast: {contrast} to layer: {current_item.name}")
+            else:
+                QMessageBox.warning(self, "Error", "Failed to apply brightness/contrast.")
+        else:
+            print("Brightness/Contrast dialog cancelled.")
