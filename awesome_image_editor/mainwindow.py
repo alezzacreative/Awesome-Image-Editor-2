@@ -10,12 +10,17 @@ from PyQt6.QtWidgets import (
     QMenu,
     QMessageBox,
     QToolBar,
+    QLabel, # Ensure QLabel is imported
 )
 
 from .dialogs.gaussian_blur import GaussianBlurDialog
+from .dialogs import BrightnessContrastDialog # Updated import
 from .file_dialog import create_open_file_dialog, create_save_file_dialog
 from .file_format import AIEProject
 from .psd_read import load_psd_as_project
+from .model_view.graphics_view import AIEGraphicsView # Add this import
+from .model_view.items.image import AIEImageItem # Import for type checking
+from .image_processing import apply_brightness_contrast, apply_grayscale, apply_sepia, apply_invert_colors # Add apply_invert_colors
 
 __all__ = ("MainWindow",)
 
@@ -24,6 +29,10 @@ class MainWindow(QMainWindow):
     def __init__(self):
         super().__init__()
         self.setWindowTitle("Awesome Image Editor")
+
+        self.zoom_status_label = QLabel("Zoom: 100.0%")
+        self.statusBar().addPermanentWidget(self.zoom_status_label)
+
         self.setup_file_menu()
         self.setup_filters_menu()
 
@@ -35,6 +44,11 @@ class MainWindow(QMainWindow):
         )
 
         self._project = AIEProject()
+        initial_view = self._project.get_graphics_view()
+        if initial_view: # Should always exist
+            initial_view.zoom_level_changed.connect(self.update_zoom_status)
+            initial_view.emit_current_zoom_level() # Request initial emit
+            
         self.setCentralWidget(self._project.get_graphics_view())
         self.layers_dock_widget.setWidget(self._project.get_layers_widget())
 
@@ -49,10 +63,30 @@ class MainWindow(QMainWindow):
 
         self.showMaximized()
 
+    def update_zoom_status(self, scale_factor: float):
+        self.zoom_status_label.setText(f"Zoom: {scale_factor * 100:.1f}%")
+
     def set_project(self, project: AIEProject):
-        self._project = project
-        self.setCentralWidget(self._project.get_graphics_view())
+        # Disconnect from the old project's view's signal
+        # Check if self._project exists and has a view first
+        if hasattr(self, '_project') and self._project:
+            old_view = self._project.get_graphics_view()
+            if old_view and isinstance(old_view, AIEGraphicsView):
+                try:
+                    old_view.zoom_level_changed.disconnect(self.update_zoom_status)
+                except TypeError: # indicates not connected or already disconnected
+                    pass
+        
+        self._project = project # project is a new AIEProject instance
+        
+        new_view = self._project.get_graphics_view()
+        self.setCentralWidget(new_view) # Set the new view as central widget
         self.layers_dock_widget.setWidget(self._project.get_layers_widget())
+
+        # Connect to the new project's view's signal
+        if new_view: # Should always be true if project is valid
+            new_view.zoom_level_changed.connect(self.update_zoom_status)
+            new_view.emit_current_zoom_level() # Request emit for new project's view
 
     def get_project(self):
         return self._project
@@ -167,4 +201,167 @@ class MainWindow(QMainWindow):
     def setup_filters_menu(self):
         menu = QMenu("Filters", self)
         menu.addAction("Gaussian Blur", self.add_gaussian_blur_to_selected_layer)
+        
+        brightness_contrast_action = menu.addAction("Brightness/Contrast...")
+        brightness_contrast_action.triggered.connect(self.open_brightness_contrast_dialog)
+        
+        grayscale_action = menu.addAction("Grayscale")
+        grayscale_action.triggered.connect(self.apply_grayscale_filter)
+        
+        sepia_action = menu.addAction("Sepia")
+        sepia_action.triggered.connect(self.apply_sepia_filter)
+        
+        invert_colors_action = menu.addAction("Invert Colors")
+        invert_colors_action.triggered.connect(self.apply_invert_colors_filter)
+        
         self.menuBar().addMenu(menu)
+
+    def apply_invert_colors_filter(self):
+        # Basic validation (copied from previous filter slots)
+        if not self._project: 
+            QMessageBox.information(self, "Information", "No project open.")
+            return
+            
+        scene = self._project.get_graphics_scene()
+        if not scene: 
+            QMessageBox.information(self, "Information", "No scene available in the project.")
+            return
+
+        selected_items = scene.selectedItems()
+        if not selected_items:
+            QMessageBox.information(self, "Information", "Please select an image layer first.")
+            return
+        
+        if len(selected_items) > 1:
+            QMessageBox.information(self, "Information", "Please select only one image layer.")
+            return
+
+        current_item = selected_items[0]
+        if not isinstance(current_item, AIEImageItem):
+            QMessageBox.information(self, "Information", "Invert Colors can only be applied to image layers.")
+            return
+
+        # print(f"Applying Invert Colors to layer: {current_item.name}") # This line can be removed or kept for debugging
+
+        original_image = current_item.image
+        if original_image.isNull():
+            QMessageBox.warning(self, "Warning", "The selected layer does not contain valid image data.")
+            return
+
+        modified_image = apply_invert_colors(original_image)
+        
+        if not modified_image.isNull():
+            current_item.setImage(modified_image) # Use existing setImage method
+            print(f"Invert Colors filter applied to layer: {current_item.name}")
+        else:
+            QMessageBox.warning(self, "Error", "Failed to apply Invert Colors filter.")
+
+    def apply_sepia_filter(self):
+        # Basic validation (copied from apply_grayscale_filter)
+        if not self._project: # Check project existence first
+            QMessageBox.information(self, "Information", "No project open.")
+            return
+            
+        scene = self._project.get_graphics_scene()
+        if not scene: # Check scene existence
+            QMessageBox.information(self, "Information", "No scene available in the project.")
+            return
+
+        selected_items = scene.selectedItems()
+        if not selected_items:
+            QMessageBox.information(self, "Information", "Please select an image layer first.")
+            return
+        
+        if len(selected_items) > 1:
+            QMessageBox.information(self, "Information", "Please select only one image layer.")
+            return
+
+        current_item = selected_items[0]
+        if not isinstance(current_item, AIEImageItem):
+            QMessageBox.information(self, "Information", "Sepia filter can only be applied to image layers.")
+            return
+
+        # print(f"Applying Sepia to layer: {current_item.name}") # This line can be removed or kept for debugging
+
+        original_image = current_item.image
+        if original_image.isNull():
+            QMessageBox.warning(self, "Warning", "The selected layer does not contain valid image data.")
+            return
+
+        modified_image = apply_sepia(original_image)
+        
+        if not modified_image.isNull():
+            current_item.setImage(modified_image) # Use existing setImage method
+            print(f"Sepia filter applied to layer: {current_item.name}")
+        else:
+            QMessageBox.warning(self, "Error", "Failed to apply Sepia filter.")
+
+    def apply_grayscale_filter(self):
+        if not self._project: # Should not happen if UI is enabled correctly
+            return
+            
+        selected_items = self._project.get_graphics_scene().selectedItems()
+
+        if not selected_items:
+            QMessageBox.information(self, "Information", "Please select an image layer first.")
+            return
+        
+        if len(selected_items) > 1:
+            QMessageBox.information(self, "Information", "Please select only one image layer.")
+            return
+
+        current_item = selected_items[0]
+        if not isinstance(current_item, AIEImageItem):
+            QMessageBox.information(self, "Information", "Grayscale can only be applied to image layers.")
+            return
+
+        original_image = current_item.image
+        if original_image.isNull():
+            QMessageBox.warning(self, "Warning", "The selected layer does not contain valid image data.")
+            return
+
+        modified_image = apply_grayscale(original_image)
+        
+        if not modified_image.isNull():
+            current_item.setImage(modified_image) # Use existing setImage method
+            print(f"Grayscale filter applied to layer: {current_item.name}")
+        else:
+            QMessageBox.warning(self, "Error", "Failed to apply grayscale filter.")
+
+    def open_brightness_contrast_dialog(self):
+        scene = self._project.get_graphics_scene()
+        selected_items = scene.selectedItems()
+
+        if not selected_items:
+            QMessageBox.information(self, "Information", "Please select an image layer first.")
+            return
+
+        if len(selected_items) > 1:
+            QMessageBox.information(self, "Information", "Please select only one image layer.")
+            return
+            
+        current_item = selected_items[0]
+        if not isinstance(current_item, AIEImageItem):
+            QMessageBox.information(self, "Information", "Brightness/Contrast can only be applied to image layers.")
+            return
+        
+        dialog = BrightnessContrastDialog(self) # Pass parent
+        # Optional: Set initial dialog values from item if needed in future, e.g. dialog.set_values(...)
+        
+        if dialog.exec(): # This shows the dialog modally
+            values = dialog.get_values()
+            brightness = values["brightness"]
+            contrast = values["contrast"]
+            
+            original_image = current_item.image
+            modified_image = apply_brightness_contrast(original_image, brightness, contrast)
+            
+            if not modified_image.isNull():
+                current_item.setImage(modified_image)
+                # Note: The TreeView thumbnail update is a potential refinement.
+                # For now, the main scene item updates.
+                print(f"Applied Brightness: {brightness}, Contrast: {contrast} to layer: {current_item.name}")
+            else:
+                QMessageBox.warning(self, "Error", "Failed to apply brightness/contrast.")
+        else:
+            print("Brightness/Contrast dialog cancelled.")

@@ -39,6 +39,7 @@ class AIEProject:
 
     def add_image_layer(self, image: QImage, layer_name: str):
         self._graphics_scene.addItem(AIEImageItem(image, layer_name))
+        self._graphics_scene.setSceneRect(self._graphics_scene.itemsBoundingRect())
 
     def get_layers_widget(self):
         return self._layers_widget
@@ -120,5 +121,6 @@ class AIEProject:
                 item = AIEImageItem(image, layer_name)
                 item.setPos(x, y)
                 scene.addItem(item)
-
+        
+        scene.setSceneRect(scene.itemsBoundingRect())
         return project
