@@ -2,7 +2,7 @@ import pytest
 from PyQt6.QtGui import QImage, QColor
 
 # Adjust import path as necessary
-from awesome_image_editor.image_processing import apply_brightness_contrast, clamp
+from awesome_image_editor.image_processing import apply_brightness_contrast, clamp, apply_grayscale # Added apply_grayscale
 
 # --- Clamp Tests (Optional but good practice) ---
 def test_clamp():
@@ -111,4 +111,57 @@ def test_apply_bc_image_format_conversion(sample_image_bc):
     new_pixel = modified_image.pixelColor(0,0)
     assert new_pixel.red() == 128
     assert new_pixel.alpha() == 255 # Alpha should be preserved from converted image
+
+# --- Apply Grayscale Tests ---
+@pytest.fixture
+def sample_color_image_gs(): # gs for grayscale
+    img = QImage(2, 1, QImage.Format.Format_ARGB32_Premultiplied) # 2 pixels
+    img.setPixelColor(0, 0, QColor(100, 150, 200, 255)) # Color pixel
+    img.setPixelColor(1, 0, QColor(50, 70, 90, 128))   # Another color pixel with different alpha
+    return img
+
+def test_apply_grayscale_conversion(sample_color_image_gs):
+    modified_image = apply_grayscale(sample_color_image_gs)
+    assert not modified_image.isNull()
+    assert modified_image.size() == sample_color_image_gs.size()
+    assert modified_image.format() == QImage.Format.Format_ARGB32_Premultiplied
+
+    # Pixel 1: QColor(100, 150, 200, 255)
+    # Expected gray: int(0.299*100 + 0.587*150 + 0.114*200)
+    # gray1 = int(29.9 + 88.05 + 22.8) = int(140.75) = 141 (standard rounding for int())
+    
+    px1_color = modified_image.pixelColor(0, 0)
+    expected_gray1 = int(0.299 * 100 + 0.587 * 150 + 0.114 * 200) 
+    assert px1_color.red() == expected_gray1
+    assert px1_color.green() == expected_gray1
+    assert px1_color.blue() == expected_gray1
+    assert px1_color.alpha() == 255 # Alpha preserved
+
+    # Pixel 2: QColor(50, 70, 90, 128)
+    # Expected gray: int(0.299*50 + 0.587*70 + 0.114*90)
+    # gray2 = int(14.95 + 41.09 + 10.26) = int(66.3) = 66
+    px2_color = modified_image.pixelColor(1, 0)
+    expected_gray2 = int(0.299 * 50 + 0.587 * 70 + 0.114 * 90) 
+    assert px2_color.red() == expected_gray2
+    assert px2_color.green() == expected_gray2
+    assert px2_color.blue() == expected_gray2
+    assert px2_color.alpha() == 128 # Alpha preserved
+
+def test_apply_grayscale_already_gray(sample_image_bc): # Uses mid-gray image from BC tests
+    # sample_image_bc is QColor(128, 128, 128, 200)
+    modified_image = apply_grayscale(sample_image_bc)
+    assert not modified_image.isNull()
+    
+    px_color = modified_image.pixelColor(0,0)
+    # Expected gray: int(0.299*128 + 0.587*128 + 0.114*128) = int(1.0 * 128) = 128
+    # Or more simply, if r=g=b, gray should be r.
+    assert px_color.red() == 128
+    assert px_color.green() == 128
+    assert px_color.blue() == 128
+    assert px_color.alpha() == 200
+
+def test_apply_grayscale_null_image():
+    null_img = QImage()
+    modified_image = apply_grayscale(null_img)
+    assert modified_image.isNull()
 ```

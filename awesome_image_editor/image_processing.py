@@ -54,3 +54,35 @@ def apply_brightness_contrast(original_image: QImage, brightness: int, contrast:
             new_image.setPixelColor(x, y, QColor(r_contrast, g_contrast, b_contrast, a))
             
     return new_image
+
+# In awesome_image_editor/image_processing.py
+
+def apply_grayscale(original_image: QImage) -> QImage:
+    if original_image.isNull():
+        return QImage()
+
+    # Create a deep copy to modify, ensuring it supports alpha
+    processed_image = original_image.convertToFormat(QImage.Format.Format_ARGB32_Premultiplied)
+
+    width = processed_image.width()
+    height = processed_image.height()
+
+    for y in range(height):
+        for x in range(width):
+            pixel_color = processed_image.pixelColor(x, y)
+            
+            r = pixel_color.red()
+            g = pixel_color.green()
+            b = pixel_color.blue()
+            a = pixel_color.alpha()
+
+            # Luminosity method for grayscale
+            gray = int(0.299 * r + 0.587 * g + 0.114 * b)
+            
+            # Clamp gray value just in case of floating point inaccuracies, though unlikely here
+            gray = clamp(gray) # Uses the existing clamp function
+
+            processed_image.setPixelColor(x, y, QColor(gray, gray, gray, a))
+            
+    return processed_image
+```
