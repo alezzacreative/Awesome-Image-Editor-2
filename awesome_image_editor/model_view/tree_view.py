@@ -1,3 +1,4 @@
+from typing import Iterator
 from PyQt6.QtCore import QItemSelectionModel, QModelIndex
 from PyQt6.QtWidgets import QTreeView
 
@@ -47,7 +48,7 @@ class TreeView(QTreeView):
         # it will try to sync the old selection state
         self._is_selection_locked = False
 
-    def iter_model_indices_recursive(self) -> iter[QModelIndex]:
+    def iter_model_indices_recursive(self) -> Iterator[QModelIndex]:
         """
         Iterates recursively over all valid QModelIndex items in the model.
 
