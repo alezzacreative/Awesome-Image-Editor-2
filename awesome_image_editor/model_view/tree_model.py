@@ -1,7 +1,7 @@
 from PyQt6.QtCore import QAbstractItemModel, QModelIndex, Qt
 
 from .graphics_scene import AIEGraphicsScene
-from .roles import ItemSelectionRole
+from .roles import ItemSelectionRole, OpacityRole
 from .tree_item import TreeItemProtocol
 
 
@@ -145,6 +145,11 @@ class TreeModel(QAbstractItemModel):
             )
         elif role == ItemSelectionRole:
             return item.isSelected()
+        elif role == OpacityRole:
+            # Ensure item has an opacity method, which all our AIE*Items should
+            if hasattr(item, 'opacity'):
+                return item.opacity()
+            return 1.0 # Default to fully opaque if method somehow not present
         return None
 
     def setData_(
@@ -171,6 +176,20 @@ class TreeModel(QAbstractItemModel):
         elif role == Qt.ItemDataRole.CheckStateRole:
             item.setVisible(Qt.CheckState(value) == Qt.CheckState.Checked)
             return True
+        elif role == OpacityRole:
+            if hasattr(item, 'setOpacity'):
+                try:
+                    opacity_value = float(value)
+                    if 0.0 <= opacity_value <= 1.0:
+                        item.setOpacity(opacity_value)
+                        return True # Indicate data was changed
+                    else:
+                        # print(f"Warning: Opacity value {opacity_value} out of range [0.0, 1.0]")
+                        return False
+                except ValueError:
+                    # print(f"Warning: Could not convert opacity value '{value}' to float.")
+                    return False
+            return False # Item doesn't have setOpacity or conversion failed
 
         return False
 
@@ -192,7 +211,8 @@ class TreeModel(QAbstractItemModel):
         """
         is_data_changed = self.setData_(index, value, role)
         if is_data_changed:
-            self.dataChanged.emit(index, index)
+            # Emit dataChanged with the specific role that changed
+            self.dataChanged.emit(index, index, [role]) # Pass the role in a list
         return is_data_changed
 
     def flags(self, index: QModelIndex) -> Qt.ItemFlag:

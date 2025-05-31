@@ -48,6 +48,12 @@ def read_psd_layer(
             if child_item:
                 child_item.setParentItem(item)
 
+    if item is not None and hasattr(layer, 'opacity') and hasattr(item, 'setOpacity'):
+        # layer.opacity from psd-tools is 0-255
+        # Convert to 0.0-1.0 for AIEItem
+        opacity_float = layer.opacity / 255.0
+        item.setOpacity(opacity_float)
+
     if item is not None:
         # Items are added to the scene here. If they have a parent,
         # Qt automatically handles removing them from the scene's top-level items.

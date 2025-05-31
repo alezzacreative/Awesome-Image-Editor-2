@@ -74,3 +74,21 @@ class AIEShapeItem(QGraphicsItem):
         """
         painter.setPen(self.stroke_color)
         painter.drawPath(self.path)
+
+    def setOpacity(self, opacity: float) -> None:
+        """
+        Sets the opacity of the shape item.
+
+        Args:
+            opacity: The new opacity, from 0.0 (transparent) to 1.0 (opaque).
+        """
+        super().setOpacity(opacity)
+
+    def opacity(self) -> float:
+        """
+        Returns the current opacity of the shape item.
+
+        Returns:
+            The current opacity, from 0.0 (transparent) to 1.0 (opaque).
+        """
+        return super().opacity()

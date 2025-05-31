@@ -21,6 +21,7 @@ from .binary_io.read import (
     read_pascal_string,
     read_unicode_string,
 )
+import struct # For struct.error
 
 MAGIC_BYTES: bytes = b"\x89AIE\r\n\x1a\n"
 """Magic bytes to identify an Awesome Image Editor (.aie) file. Similar to PNG magic bytes."""
@@ -147,6 +148,12 @@ class AIEProject:
                 write_uint32_le(len(byte_array), writer)
                 writer.write(byte_array.data())
 
+                # Write opacity
+                if hasattr(item, 'opacity'): # Check if item has opacity method
+                    write_float_le(item.opacity(), writer)
+                else: # Should not happen for our items, but as a fallback
+                    write_float_le(1.0, writer) # Default to fully opaque
+
     @staticmethod
     def deserialize(reader: BufferedReader) -> "AIEProject":
         """
@@ -188,6 +195,22 @@ class AIEProject:
 
                 item = AIEImageItem(image, layer_name)
                 item.setPos(x, y)
+
+                try:
+                    # Read opacity
+                    opacity_value = read_float_le(reader)
+                    # Ensure opacity is within valid range, though it should be if saved correctly
+                    opacity_value = max(0.0, min(1.0, opacity_value))
+                    if hasattr(item, 'setOpacity'): # Check if item has setOpacity method
+                         item.setOpacity(opacity_value)
+                except EOFError:
+                    # Older file format without opacity, default to 1.0 (opaque)
+                    # Item will retain its default opacity (QGraphicsItem defaults to 1.0)
+                    pass
+                except struct.error: # Could happen if file is corrupt or shorter than expected
+                     # Item will retain its default opacity
+                     pass
+
                 scene.addItem(item)
 
         return project

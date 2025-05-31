@@ -81,3 +81,21 @@ class AIEImageItem(QGraphicsItem):
             widget: The widget that is being painted on (unused).
         """
         painter.drawImage(self.boundingRect(), self.image)
+
+    def setOpacity(self, opacity: float) -> None:
+        """
+        Sets the opacity of the image item.
+
+        Args:
+            opacity: The new opacity, from 0.0 (transparent) to 1.0 (opaque).
+        """
+        super().setOpacity(opacity) # Calls QGraphicsItem.setOpacity
+
+    def opacity(self) -> float:
+        """
+        Returns the current opacity of the image item.
+
+        Returns:
+            The current opacity, from 0.0 (transparent) to 1.0 (opaque).
+        """
+        return super().opacity() # Calls QGraphicsItem.opacity

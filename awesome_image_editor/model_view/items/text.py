@@ -115,6 +115,24 @@ class AIETextItem(QGraphicsTextItem):
         """
         ...
 
+    def setOpacity(self, opacity: float) -> None:
+        """
+        Sets the opacity of the text item.
+
+        Args:
+            opacity: The new opacity, from 0.0 (transparent) to 1.0 (opaque).
+        """
+        super().setOpacity(opacity) # Calls QGraphicsItem.setOpacity
+
+    def opacity(self) -> float:
+        """
+        Returns the current opacity of the text item.
+
+        Returns:
+            The current opacity, from 0.0 (transparent) to 1.0 (opaque).
+        """
+        return super().opacity() # Calls QGraphicsItem.opacity
+
     def get_size_hint(self):
         """
         Returns the recommended size for this item's thumbnail.

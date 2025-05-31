@@ -85,3 +85,22 @@ class AIEGroupItem(QGraphicsItem):
             A QRectF that encompasses all child items.
         """
         return self.childrenBoundingRect()
+
+    def setOpacity(self, opacity: float) -> None:
+        """
+        Sets the opacity of the group item and its children.
+        Note: QGraphicsItem.setOpacity propagates to children.
+
+        Args:
+            opacity: The new opacity, from 0.0 (transparent) to 1.0 (opaque).
+        """
+        super().setOpacity(opacity)
+
+    def opacity(self) -> float:
+        """
+        Returns the current opacity of the group item.
+
+        Returns:
+            The current opacity, from 0.0 (transparent) to 1.0 (opaque).
+        """
+        return super().opacity()
