@@ -113,7 +113,7 @@ class MainWindow(QMainWindow):
         default_dir = QStandardPaths.writableLocation(
             QStandardPaths.StandardLocation.PicturesLocation
         )
-        dlg = create_open_file_dialog(default_dir, "Image files (*.jpg *.png)")
+        dlg = create_open_file_dialog(default_dir, "All Supported Image Files (*.png *.jpg *.jpeg *.bmp *.gif *.svg *.tif *.tiff *.webp);;PNG Files (*.png);;JPEG Files (*.jpg *.jpeg);;BMP Files (*.bmp);;GIF Files (*.gif);;SVG Files (*.svg);;TIFF Files (*.tif *.tiff);;WebP Files (*.webp)")
 
         try:
             if dlg.exec():
@@ -129,7 +129,7 @@ class MainWindow(QMainWindow):
         default_dir = QStandardPaths.writableLocation(
             QStandardPaths.StandardLocation.PicturesLocation
         )
-        dlg = create_save_file_dialog(default_dir, "Image files (*.jpg *.png)")
+        dlg = create_save_file_dialog(default_dir, "PNG Files (*.png);;JPEG Files (*.jpg *.jpeg);;BMP Files (*.bmp);;TIFF Files (*.tif *.tiff);;WebP Files (*.webp);;GIF Files (*.gif);;SVG Files (*.svg)")
 
         try:
             if dlg.exec():
