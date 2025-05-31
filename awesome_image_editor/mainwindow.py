@@ -3,6 +3,10 @@ from pathlib import Path
 
 from PyQt6.QtCore import QStandardPaths, Qt
 from PyQt6.QtGui import QFont, QImage
+from PIL import Image as PILImage
+from PIL import ImageQt
+import numpy as np
+import qoi
 from PyQt6.QtWidgets import (
     QDockWidget,
     QGraphicsBlurEffect,
@@ -113,31 +117,84 @@ class MainWindow(QMainWindow):
         default_dir = QStandardPaths.writableLocation(
             QStandardPaths.StandardLocation.PicturesLocation
         )
-        dlg = create_open_file_dialog(default_dir, "All Supported Image Files (*.png *.jpg *.jpeg *.bmp *.gif *.svg *.tif *.tiff *.webp);;PNG Files (*.png);;JPEG Files (*.jpg *.jpeg);;BMP Files (*.bmp);;GIF Files (*.gif);;SVG Files (*.svg);;TIFF Files (*.tif *.tiff);;WebP Files (*.webp)")
+        dlg = create_open_file_dialog(default_dir, "All Supported Image Files (*.png *.jpg *.jpeg *.avif *.bmp *.gif *.svg *.tif *.tiff *.webp *.qoi);;PNG Files (*.png);;JPEG Files (*.jpg *.jpeg);;AVIF Files (*.avif);;QOI Files (*.qoi);;BMP Files (*.bmp);;GIF Files (*.gif);;SVG Files (*.svg);;TIFF Files (*.tif *.tiff);;WebP Files (*.webp)")
 
         try:
             if dlg.exec():
                 filepath = dlg.selectedFiles()[0]
-                image = QImage(filepath)
+                image: QImage
+                lower_filepath = filepath.lower()
+
+                if lower_filepath.endswith(".avif"):
+                    pil_img = PILImage.open(filepath)
+                    pil_img = pil_img.convert("RGBA") # Ensure consistent format
+                    image = ImageQt.toqimage(pil_img)
+                elif lower_filepath.endswith(".qoi"):
+                    pil_img = PILImage.open(filepath)
+                    pil_img = pil_img.convert("RGBA") # Ensure consistent format for QImage
+                    image = ImageQt.toqimage(pil_img)
+                else:
+                    image = QImage(filepath)
+
+                if image.isNull():
+                    raise ValueError(f"Failed to load image: {filepath}")
+
                 image_name = Path(filepath).stem
                 self._project.add_image_layer(image, image_name)
-        except:
-            QMessageBox.critical(self, "Error", traceback.format_exc())
+        except Exception as e:
+            QMessageBox.critical(self, "Error Opening Image", f"Could not open image file: {filepath}\n\nError: {e}\n\n{traceback.format_exc()}")
 
     def save_image(self):
-        """Saves the current project as an image file (e.g., JPG, PNG)."""
+        """Saves the current project as an image file (e.g., JPG, PNG, AVIF)."""
         default_dir = QStandardPaths.writableLocation(
             QStandardPaths.StandardLocation.PicturesLocation
         )
-        dlg = create_save_file_dialog(default_dir, "PNG Files (*.png);;JPEG Files (*.jpg *.jpeg);;BMP Files (*.bmp);;TIFF Files (*.tif *.tiff);;WebP Files (*.webp);;GIF Files (*.gif);;SVG Files (*.svg)")
+        dlg = create_save_file_dialog(default_dir, "PNG Files (*.png);;JPEG Files (*.jpg *.jpeg);;AVIF Files (*.avif);;QOI Files (*.qoi);;BMP Files (*.bmp);;TIFF Files (*.tif *.tiff);;WebP Files (*.webp);;GIF Files (*.gif);;SVG Files (*.svg)")
 
         try:
             if dlg.exec():
                 filepath = dlg.selectedFiles()[0]
-                image = self._project.render()
-                image.save(filepath)
-        except:
-            QMessageBox.critical(self, "Error", traceback.format_exc())
+                lower_filepath = filepath.lower()
+
+                if lower_filepath.endswith(".avif"):
+                    q_image_to_save = self._project.render()
+                    pil_image_to_save = ImageQt.fromqimage(q_image_to_save)
+                    if pil_image_to_save.mode not in ['RGB', 'RGBA']:
+                        pil_image_to_save = pil_image_to_save.convert('RGBA')
+                    pil_image_to_save.save(filepath, format='AVIF')
+                elif lower_filepath.endswith(".qoi"):
+                    q_image_to_save = self._project.render()
+                    # Convert QImage to RGBA or RGB format suitable for QOI
+                    # QOI typically handles 3 (RGB) or 4 (RGBA) channels.
+                    # Ensure format is not indexed or grayscale without conversion.
+                    if q_image_to_save.format() not in [QImage.Format.Format_RGB888, QImage.Format.Format_RGBA8888, QImage.Format.Format_RGBA8888_Premultiplied]:
+                         q_image_to_save = q_image_to_save.convertToFormat(QImage.Format.Format_RGBA8888)
+
+                    pil_img = ImageQt.fromqimage(q_image_to_save)
+
+                    # Ensure mode is RGB or RGBA for QOI
+                    if pil_img.mode not in ('RGB', 'RGBA'):
+                        pil_img = pil_img.convert('RGBA' if pil_img.has_alpha() else 'RGB')
+
+                    numpy_array = np.array(pil_img)
+
+                    # The qoi library expects data in HWC (Height, Width, Channels) format.
+                    # np.array(pil_img) should already be in this format.
+                    # It also expects uint8 data.
+                    if numpy_array.dtype != np.uint8:
+                        numpy_array = numpy_array.astype(np.uint8)
+
+                    # Determine channels from numpy array shape for qoi.write
+                    # The qoi.write function infers channels from the array shape.
+                    # It might also take an explicit `channels` argument if needed,
+                    # but the `rgb` parameter `const unsigned char[:, :, ::1]` implies it handles it.
+                    qoi.write(filepath, numpy_array) # Using qoi.write, assuming qoi.__init__ exposes it from qoi.qoi
+                else:
+                    image_to_save = self._project.render()
+                    if not image_to_save.save(filepath):
+                        raise ValueError(f"Failed to save image to: {filepath}. Qt's QImage.save() returned false.")
+        except Exception as e:
+            QMessageBox.critical(self, "Error Saving Image", f"Could not save image file: {filepath}\n\nError: {e}\n\n{traceback.format_exc()}")
 
     def add_gaussian_blur_to_selected_layer(self):
         """Applies a Gaussian blur effect to the currently selected layer."""
