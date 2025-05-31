@@ -11,7 +11,20 @@ __all__ = ("Application",)
 
 
 class Application(QApplication):
+    """
+    The main application class for Awesome Image Editor.
+
+    This class initializes the application, sets up the theme,
+    and handles application-level settings.
+    """
+
     def __init__(self, argv: List[str]):
+        """
+        Initializes the Application.
+
+        Args:
+            argv: Command-line arguments passed to the application.
+        """
         super().__init__(argv)
 
         # Fixes app icon not displayed in Windows taskbar

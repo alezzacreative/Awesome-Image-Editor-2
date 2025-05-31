@@ -22,34 +22,80 @@ from .binary_io.read import (
     read_unicode_string,
 )
 
-MAGIC_BYTES = b"\x89AIE\r\n\x1a\n"  # Similar to PNG magic bytes
+MAGIC_BYTES: bytes = b"\x89AIE\r\n\x1a\n"
+"""Magic bytes to identify an Awesome Image Editor (.aie) file. Similar to PNG magic bytes."""
 
 # Chunk Types
-LAYERS_CHUNK_TYPE = b"LAYERS"
-IMAGE_CHUNK_TYPE = b"IMAGE"
+LAYERS_CHUNK_TYPE: bytes = b"LAYERS"
+"""Identifier for a chunk containing layer information."""
+IMAGE_CHUNK_TYPE: bytes = b"IMAGE"
+"""Identifier for a chunk containing image data for a layer."""
 
 
 class AIEProject:
-    def __init__(self):
+    """
+    Represents an Awesome Image Editor project.
+
+    This class encapsulates the scene, view, layers, and provides methods
+    for adding layers, rendering the project, and serializing/deserializing
+    it to/from the .aie file format.
+    """
+
+    def __init__(self) -> None:
+        """Initializes a new AIEProject with an empty scene and associated view/widgets."""
         self._graphics_scene = AIEGraphicsScene()
         self._graphics_view = AIEGraphicsView(self._graphics_scene)
 
         self._graphics_scene_model = TreeModel(self._graphics_scene)
         self._layers_widget = LayersWidget(self._graphics_scene_model)
 
-    def add_image_layer(self, image: QImage, layer_name: str):
+    def add_image_layer(self, image: QImage, layer_name: str) -> None:
+        """
+        Adds a new image layer to the project.
+
+        Args:
+            image: The QImage to add as a layer.
+            layer_name: The name for the new layer.
+        """
         self._graphics_scene.addItem(AIEImageItem(image, layer_name))
 
-    def get_layers_widget(self):
+    def get_layers_widget(self) -> LayersWidget:
+        """
+        Returns the LayersWidget associated with this project.
+
+        Returns:
+            The LayersWidget instance.
+        """
         return self._layers_widget
 
-    def get_graphics_view(self):
+    def get_graphics_view(self) -> QGraphicsView:
+        """
+        Returns the AIEGraphicsView associated with this project.
+
+        Returns:
+            The AIEGraphicsView instance.
+        """
         return self._graphics_view
 
-    def get_graphics_scene(self):
+    def get_graphics_scene(self) -> AIEGraphicsScene:
+        """
+        Returns the AIEGraphicsScene associated with this project.
+
+        Returns:
+            The AIEGraphicsScene instance.
+        """
         return self._graphics_scene
 
-    def render(self):
+    def render(self) -> QImage:
+        """
+        Renders the current state of the graphics scene into a QImage.
+
+        The scene is fit to its items, and then rendered onto a transparent
+        ARGB32 premultiplied image.
+
+        Returns:
+            A QImage containing the rendered scene.
+        """
         scene = self._graphics_scene
         # Fit scene to items
         scene.setSceneRect(scene.itemsBoundingRect())
@@ -69,7 +115,15 @@ class AIEProject:
 
         return image
 
-    def serialize(self, writer: BufferedWriter):
+    def serialize(self, writer: BufferedWriter) -> None:
+        """
+        Serializes the project to a binary stream using the .aie file format.
+
+        Writes magic bytes, layer information, and image data for each layer.
+
+        Args:
+            writer: A BufferedWriter to write the serialized project data to.
+        """
         writer.write(MAGIC_BYTES)
         write_pascal_string(LAYERS_CHUNK_TYPE, writer)
         num_layers = len(self._graphics_scene.items())
@@ -94,7 +148,22 @@ class AIEProject:
                 writer.write(byte_array.data())
 
     @staticmethod
-    def deserialize(reader: BufferedReader):
+    def deserialize(reader: BufferedReader) -> "AIEProject":
+        """
+        Deserializes an AIEProject from a binary stream.
+
+        Reads the .aie file format, reconstructs layers and their properties.
+
+        Args:
+            reader: A BufferedReader to read the serialized project data from.
+
+        Returns:
+            A new AIEProject instance populated with data from the reader.
+
+        Raises:
+            AssertionError: If the file format is invalid (e.g., wrong magic
+                            bytes or unexpected chunk types).
+        """
         assert reader.read(len(MAGIC_BYTES)) == MAGIC_BYTES
 
         # Expecting layers chunk

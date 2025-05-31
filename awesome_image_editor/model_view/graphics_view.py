@@ -5,7 +5,19 @@ from PyQt6.QtCore import QRectF, QPoint, QRect, QSize, Qt
 
 
 class AIEGraphicsView(QGraphicsView):
-    def __init__(self, scene: QGraphicsScene):
+    """
+    A custom QGraphicsView for the Awesome Image Editor.
+
+    This view provides rubber band selection functionality and custom mouse event handling.
+    """
+
+    def __init__(self, scene: QGraphicsScene) -> None:
+        """
+        Initializes the AIEGraphicsView.
+
+        Args:
+            scene: The QGraphicsScene to associate with this view.
+        """
         super().__init__(scene)
         self.setRenderHint(QPainter.RenderHint.Antialiasing, True)
         self.setDragMode(QGraphicsView.DragMode.NoDrag)
@@ -14,6 +26,15 @@ class AIEGraphicsView(QGraphicsView):
         self._rubberband: Optional[QRubberBand] = None
 
     def mousePressEvent(self, event: QMouseEvent) -> None:
+        """
+        Handles mouse press events in the view.
+
+        Initializes rubber band selection when the left mouse button is pressed
+        on an empty area.
+
+        Args:
+            event: The QMouseEvent.
+        """
         super().mousePressEvent(event)
 
         if event.button() == Qt.MouseButton.LeftButton and (
@@ -29,6 +50,15 @@ class AIEGraphicsView(QGraphicsView):
             self._rubberband.show()
 
     def mouseMoveEvent(self, event: QMouseEvent) -> None:
+        """
+        Handles mouse move events in the view.
+
+        Updates the rubber band geometry and selects items within the
+        rubber band area during selection.
+
+        Args:
+            event: The QMouseEvent.
+        """
         super().mouseMoveEvent(event)
 
         if (
@@ -55,6 +85,14 @@ class AIEGraphicsView(QGraphicsView):
                     item.setSelected(False)
 
     def mouseReleaseEvent(self, event: QMouseEvent) -> None:
+        """
+        Handles mouse release events in the view.
+
+        Finalizes rubber band selection and hides the rubber band.
+
+        Args:
+            event: The QMouseEvent.
+        """
         super().mouseReleaseEvent(event)
 
         if self._rubberband is not None:

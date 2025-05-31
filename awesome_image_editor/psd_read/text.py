@@ -4,16 +4,50 @@ from PyQt6.QtGui import QColor, QFont, QTextBlockFormat, QTextCharFormat, QTextC
 
 from ..model_view.items.text import AIETextItem
 
-DEFAULT_PSD_TEXT_FILL_COLOR_DATA = {"Type": 1, "Values": [1, 0, 0, 0]}
+DEFAULT_PSD_TEXT_FILL_COLOR_DATA: dict = {"Type": 1, "Values": [1, 0, 0, 0]}
+"""
+Default fill color data for PSD text layers if not specified.
+Represents black color in ARGB format (A=1, R=0, G=0, B=0).
+Used when a style sheet in the PSD does not explicitly define a `FillColor`.
+"""
 
-
-PSD_PARAGRAPH_JUSTIFICATION_QT_ALIGNMENT_MAP = {
-    0: Qt.AlignmentFlag.AlignLeft,
-    2: Qt.AlignmentFlag.AlignCenter,
+PSD_PARAGRAPH_JUSTIFICATION_QT_ALIGNMENT_MAP: dict[int, Qt.AlignmentFlag] = {
+    0: Qt.AlignmentFlag.AlignLeft,  # PSD Justification: Left
+    # 1: Qt.AlignmentFlag.AlignRight, # PSD Justification: Right (TODO: Verify if this mapping is correct if needed)
+    2: Qt.AlignmentFlag.AlignCenter,  # PSD Justification: Center
+    # 3: Qt.AlignmentFlag.AlignJustify, # PSD Justification: Justify (TODO: Verify if this mapping is correct if needed)
 }
+"""
+Maps PSD paragraph justification values to Qt.AlignmentFlag values.
+PSD justification values are integers (0 for left, 2 for center, etc.).
+This map is used to set the text alignment in QTextBlockFormat.
+"""
 
 
-def psd_type_layer_to_text_item(layer: TypeLayer):
+def psd_type_layer_to_text_item(layer: TypeLayer) -> AIETextItem:
+    """
+    Converts a PSD type layer (text layer) to an AIETextItem.
+
+    This function processes a `TypeLayer` object from psd-tools, extracting
+    text content, font styles, colors, and paragraph formatting. It then
+    constructs an `AIETextItem` with this information.
+
+    The process involves:
+    1. Initializing an empty `AIETextItem` and setting its basic properties
+       (name, position, visibility) from the PSD layer.
+    2. Iterating through style runs (`RunArray`) in the PSD layer's engine data
+       to apply character-level formatting (font, size, color) to corresponding
+       substrings of the text.
+    3. Iterating through paragraph runs to apply block-level formatting
+       (text alignment) to paragraphs within the text item.
+
+    Args:
+        layer: The PSD TypeLayer to convert.
+
+    Returns:
+        An AIETextItem representing the text layer, with content and formatting
+        derived from the PSD data.
+    """
     item = AIETextItem("", layer.name)
     item.setPos(layer.offset[0], layer.offset[1])
     item.setVisible(layer.visible)

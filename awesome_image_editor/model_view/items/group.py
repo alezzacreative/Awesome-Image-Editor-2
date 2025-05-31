@@ -9,14 +9,38 @@ from PyQt6.QtCore import QRectF
 
 
 class AIEGroupItem(QGraphicsItem):
+    """
+    Represents a group of items in the AIEGraphicsScene.
+
+    This item allows for grouping other QGraphicsItems (like images, shapes, text)
+    and manipulating them as a single unit (e.g., moving). It does not have
+    its own visual representation but defines its bounding rectangle based on
+    the items it contains.
+    It is selectable and movable.
+    """
+
     # NOTE: We do not use a QGraphicsItemGroup because it forces children to have the same selection state as group
-    def __init__(self, name: str):
+    def __init__(self, name: str) -> None:
+        """
+        Initializes an AIEGroupItem.
+
+        Args:
+            name: The name of the group item, used for display in the layer tree.
+        """
         super().__init__()
         self.name = name
         self.setFlag(QGraphicsItem.GraphicsItemFlag.ItemIsSelectable, True)
         self.setFlag(QGraphicsItem.GraphicsItemFlag.ItemIsMovable, True)
 
-    def get_thumbnail(self):
+    def get_thumbnail(self) -> QIcon:
+        """
+        Returns an icon representing a group layer.
+
+        This is used for display in the layer tree view.
+
+        Returns:
+            A QIcon for a group layer.
+        """
         return QIcon(
             (
                 PurePath(__file__).parent.parent.parent
@@ -27,12 +51,37 @@ class AIEGroupItem(QGraphicsItem):
         )
 
     def get_size_hint(self):
+        """
+        Returns the recommended size for this item's thumbnail.
+
+        Currently not implemented.
+        """
         ...
 
     def paint(
-        self, painter: QPainter, option: QStyleOptionGraphicsItem, widget: QWidget
+        self, painter: QPainter, option: QStyleOptionGraphicsItem, widget: QWidget | None = None
     ) -> None:
+        """
+        Paints the group item.
+
+        This item has no visual representation itself, so this method does nothing.
+        The child items are responsible for their own painting.
+
+        Args:
+            painter: The QPainter to use for drawing (unused).
+            option: Provides style options for the item (unused).
+            widget: The widget that is being painted on (unused).
+        """
         ...
 
     def boundingRect(self) -> QRectF:
+        """
+        Returns the bounding rectangle of this group item.
+
+        The bounding rectangle is determined by the combined bounding rectangles
+        of all its child items.
+
+        Returns:
+            A QRectF that encompasses all child items.
+        """
         return self.childrenBoundingRect()

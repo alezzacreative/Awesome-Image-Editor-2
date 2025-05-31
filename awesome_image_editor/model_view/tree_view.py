@@ -6,7 +6,21 @@ from .tree_model import TreeModel
 
 
 class TreeView(QTreeView):
-    def __init__(self, model: TreeModel):
+    """
+    A custom QTreeView for displaying and interacting with a `TreeModel`.
+
+    This view synchronizes its selection state with the underlying
+    `AIEGraphicsScene` associated with the model. It also provides
+    utility methods for iterating over model indices.
+    """
+
+    def __init__(self, model: TreeModel) -> None:
+        """
+        Initializes the TreeView.
+
+        Args:
+            model: The TreeModel to display.
+        """
         super().__init__()
         self.setHeaderHidden(True)
 
@@ -33,7 +47,15 @@ class TreeView(QTreeView):
         # it will try to sync the old selection state
         self._is_selection_locked = False
 
-    def iter_model_indices_recursive(self):
+    def iter_model_indices_recursive(self) -> iter[QModelIndex]:
+        """
+        Iterates recursively over all valid QModelIndex items in the model.
+
+        This method performs a breadth-first traversal.
+
+        Yields:
+            QModelIndex: The next model index in the traversal.
+        """
         root_model_index = QModelIndex()
         model_indices_stack = [root_model_index]
 
@@ -49,7 +71,21 @@ class TreeView(QTreeView):
 
             yield model_index
 
-    def sync_model_item_selection_to_selection_model(self, model_index: QModelIndex):
+    def sync_model_item_selection_to_selection_model(
+        self, model_index: QModelIndex
+    ) -> bool:
+        """
+        Synchronizes the selection state of a single model item to the view's selection model.
+
+        Reads the selection state from the model's `ItemSelectionRole` and
+        updates the `QItemSelectionModel` of the view accordingly.
+
+        Args:
+            model_index: The QModelIndex of the item to synchronize.
+
+        Returns:
+            bool: The selection state of the item after synchronization (True if selected).
+        """
         is_selected = self.model().data(model_index, ItemSelectionRole)
 
         if is_selected:
@@ -59,9 +95,18 @@ class TreeView(QTreeView):
 
         self.selectionModel().select(model_index, command)
 
-        return is_selected
+        return bool(is_selected)
 
-    def sync_selection_from_selection_model_to_scene(self):
+    def sync_selection_from_selection_model_to_scene(self) -> None:
+        """
+        Synchronizes the selection state from the view's selection model to the scene.
+
+        Iterates over all items in the model, gets their selection state from
+        the `QItemSelectionModel`, and sets it in the `TreeModel` (which in
+        turn updates the `AIEGraphicsScene` items). This also handles ensuring
+        that non-selectable items in the scene are not marked as selected in the view.
+        Uses a lock to prevent recursive sync calls.
+        """
         if self._is_selection_locked:
             return
 
@@ -81,7 +126,16 @@ class TreeView(QTreeView):
 
         self._is_selection_locked = False
 
-    def sync_selection_from_scene_to_selection_model(self):
+    def sync_selection_from_scene_to_selection_model(self) -> None:
+        """
+        Synchronizes the selection state from the scene (via the TreeModel) to this view's selection model.
+
+        Iterates over all items in the model, gets their selection state from
+        the `TreeModel` (which reflects the `AIEGraphicsScene` item's state),
+        and updates the `QItemSelectionModel` of the view. If an item is
+        selected, it also ensures it's scrolled to be visible.
+        Uses a lock to prevent recursive sync calls.
+        """
         if self._is_selection_locked:
             return
 
