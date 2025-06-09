@@ -54,6 +54,57 @@ def _perform_save_load_test(qtbot, width, height, image_format_suffix, image_for
         if temp_filename and os.path.exists(temp_filename):
             os.remove(temp_filename)
 
+def test_invert_colors(qtbot):
+    """Tests the QImage.invertPixels(QImage.InvertMode.InvertRgb) method."""
+    width, height = 2, 1
+    image = QImage(width, height, QImage.Format.Format_RGB32)
+
+    # Original colors
+    # Ensure alpha is 255 (opaque) for Format_RGB32, QColor defaults to this.
+    color1 = QColor(qRgb(50, 100, 150))
+    color2 = QColor(qRgb(0, 255, 128))
+    image.setPixelColor(0, 0, color1)
+    image.setPixelColor(1, 0, color2)
+
+    # Apply the inversion
+    image.invertPixels(QImage.InvertMode.InvertRgb)
+
+    # Verify the inverted pixel colors
+    inverted_color1 = image.pixelColor(0, 0)
+    assert inverted_color1.red() == 255 - color1.red(), "Pixel 1 Red component incorrect after invert"
+    assert inverted_color1.green() == 255 - color1.green(), "Pixel 1 Green component incorrect after invert"
+    assert inverted_color1.blue() == 255 - color1.blue(), "Pixel 1 Blue component incorrect after invert"
+    # For Format_RGB32, alpha is often ignored or fixed. QColor.alpha() might return 255.
+    # Let's compare against the original alpha, assuming it's preserved or consistently handled.
+    assert inverted_color1.alpha() == color1.alpha(), "Pixel 1 Alpha component should be unchanged for InvertRgb"
+
+    inverted_color2 = image.pixelColor(1, 0)
+    assert inverted_color2.red() == 255 - color2.red(), "Pixel 2 Red component incorrect after invert"
+    assert inverted_color2.green() == 255 - color2.green(), "Pixel 2 Green component incorrect after invert"
+    assert inverted_color2.blue() == 255 - color2.blue(), "Pixel 2 Blue component incorrect after invert"
+    assert inverted_color2.alpha() == color2.alpha(), "Pixel 2 Alpha component should be unchanged for InvertRgb"
+
+    # Test with an RGBA format image to be more explicit about alpha
+    image_rgba = QImage(width, height, QImage.Format.Format_RGBA8888)
+    color_rgba1 = QColor(50, 100, 150, 200) # Specific alpha
+    color_rgba2 = QColor(0, 255, 128, 50)  # Different alpha
+    image_rgba.setPixelColor(0, 0, color_rgba1)
+    image_rgba.setPixelColor(1, 0, color_rgba2)
+
+    image_rgba.invertPixels(QImage.InvertMode.InvertRgb) # Only RGB should change
+
+    inverted_rgba1 = image_rgba.pixelColor(0,0)
+    assert inverted_rgba1.red() == 255 - color_rgba1.red()
+    assert inverted_rgba1.green() == 255 - color_rgba1.green()
+    assert inverted_rgba1.blue() == 255 - color_rgba1.blue()
+    assert inverted_rgba1.alpha() == color_rgba1.alpha(), "RGBA Pixel 1 Alpha should be unchanged with InvertRgb"
+
+    inverted_rgba2 = image_rgba.pixelColor(1,0)
+    assert inverted_rgba2.red() == 255 - color_rgba2.red()
+    assert inverted_rgba2.green() == 255 - color_rgba2.green()
+    assert inverted_rgba2.blue() == 255 - color_rgba2.blue()
+    assert inverted_rgba2.alpha() == color_rgba2.alpha(), "RGBA Pixel 2 Alpha should be unchanged with InvertRgb"
+
 def test_load_sample_qoi_if_exists(qtbot): # Renamed from test_load_qoi
     qoi_sample_path = "tests/sample_data/sample.qoi" # Placeholder
 

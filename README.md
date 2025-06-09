@@ -45,6 +45,7 @@ It is recommended to use a Python virtual environment to manage dependencies.
 *   **Image Format Support:** Open and save common image formats (e.g., PNG, JPG).
 *   **Custom Project Format:** Save your work as an `.aie` project file and continue editing later.
 *   **Gaussian Blur:** Apply a Gaussian blur filter to layers.
+*   **Invert Colors Filter:** Apply a color inversion effect to image layers.
 *   **Basic Layer Operations:** Add, select, move, and manage visibility of layers through the UI.
 
 ## Running Tests

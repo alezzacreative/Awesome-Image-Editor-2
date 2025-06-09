@@ -19,6 +19,7 @@ from PyQt6.QtWidgets import (
 from .dialogs.gaussian_blur import GaussianBlurDialog
 from .file_dialog import create_open_file_dialog, create_save_file_dialog
 from .file_format import AIEProject
+from .model_view.items.image import AIEImageItem # Ensure AIEImageItem is imported
 from .psd_read import load_psd_as_project
 
 __all__ = ("MainWindow",)
@@ -252,4 +253,51 @@ class MainWindow(QMainWindow):
         """Sets up the 'Filters' menu with actions for applying image filters."""
         menu = QMenu("Filters", self)
         menu.addAction("Gaussian Blur", self.add_gaussian_blur_to_selected_layer)
+        menu.addAction("Invert Colors", self.apply_invert_colors_filter)
         self.menuBar().addMenu(menu)
+
+    def apply_invert_colors_filter(self) -> None:
+        """Applies an invert colors filter to the selected image layer."""
+        if not self._project:
+            QMessageBox.warning(self, "No Project", "Please open or create a project first.")
+            return
+
+        scene = self._project.get_graphics_scene()
+        selected_items = scene.selectedItems()
+
+        if not selected_items:
+            QMessageBox.information(self, "No Selection", "Please select a layer to apply the filter to.")
+            return
+
+        if len(selected_items) > 1:
+            QMessageBox.information(self, "Multiple Layers Selected", "Please select only one layer to apply the filter.")
+            return
+
+        current_item = selected_items[0]
+        if not isinstance(current_item, AIEImageItem):
+            QMessageBox.information(self, "Not an Image Layer", "The invert colors filter can only be applied to image layers.")
+            return
+
+        # Get the QImage from the AIEImageItem
+        image_to_modify = current_item.image
+
+        if image_to_modify.isNull():
+            QMessageBox.warning(self, "Empty Image", "The selected layer does not contain valid image data.")
+            return
+
+        # Apply the invert filter
+        image_to_modify.invertPixels(QImage.InvertMode.InvertRgb)
+
+        # Notify the graphics item that its content has changed, to trigger a repaint
+        current_item.update()
+
+        # TODO: Consider if explicit model notification for thumbnail update is needed.
+        # For now, item.update() handles the main view.
+        # Example:
+        # tree_model = self._project.get_layers_widget()._model # Accessing private _model, better to have a getter
+        # if tree_model:
+        #     # Find index for current_item and emit dataChanged for DecorationRole
+        #     pass
+
+
+        QMessageBox.information(self, "Filter Applied", "Invert colors filter applied successfully.")
