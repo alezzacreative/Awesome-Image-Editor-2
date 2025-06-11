@@ -46,6 +46,7 @@ It is recommended to use a Python virtual environment to manage dependencies.
 *   **Custom Project Format:** Save your work as an `.aie` project file and continue editing later.
 *   **Gaussian Blur:** Apply a Gaussian blur filter to layers.
 *   **Invert Colors Filter:** Apply a color inversion effect to image layers.
+*   **Brightness/Contrast Filter:** Adjust the brightness and contrast of image layers.
 *   **Basic Layer Operations:** Add, select, move, and manage visibility of layers through the UI.
 
 ## Running Tests

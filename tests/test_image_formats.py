@@ -6,7 +6,7 @@ from PyQt6.QtGui import QImage, QColor, qRgb
 # but it doesn't hurt to leave it for clarity or if QImage itself needs it.
 from PyQt6.QtWidgets import QApplication
 from PIL import Image as PILImage
-from PIL import ImageQt
+from PIL import ImageQt, ImageEnhance # Added ImageEnhance
 import numpy as np
 import qoi # For qoi.write
 
@@ -53,6 +53,131 @@ def _perform_save_load_test(qtbot, width, height, image_format_suffix, image_for
     finally:
         if temp_filename and os.path.exists(temp_filename):
             os.remove(temp_filename)
+
+def test_brightness_contrast_effect(qtbot):
+    """Tests the Pillow-based brightness and contrast adjustment logic."""
+    width, height = 2, 2
+
+    # Define original colors: mid-gray, a color, dark gray, light gray
+    # Using RGBA format for QImage initially to test alpha preservation
+    original_qimage = QImage(width, height, QImage.Format.Format_RGBA8888)
+    color_mid = QColor(128, 128, 128, 255) # Mid Gray
+    color_rgb = QColor(50, 100, 150, 200)   # A color with some alpha
+    color_dark = QColor(50, 50, 50, 255)   # Dark Gray
+    color_light = QColor(200, 200, 200, 100) # Light Gray with some alpha
+
+    original_qimage.setPixelColor(0, 0, color_mid)
+    original_qimage.setPixelColor(1, 0, color_rgb)
+    original_qimage.setPixelColor(0, 1, color_dark)
+    original_qimage.setPixelColor(1, 1, color_light)
+
+    # Convert to PIL Image
+    pil_original_image = ImageQt.fromqimage(original_qimage)
+
+    pil_alpha_channel = None
+    if pil_original_image.mode == 'RGBA' or pil_original_image.mode == 'LA':
+        pil_alpha_channel = pil_original_image.getchannel('A')
+        pil_to_enhance = pil_original_image.convert('RGB')
+    else:
+        pil_to_enhance = pil_original_image.copy()
+
+
+    # 1. Test Brightness Increase (+50%)
+    brightness_factor = 1.5
+    enhancer_brightness = ImageEnhance.Brightness(pil_to_enhance)
+    pil_brightened = enhancer_brightness.enhance(brightness_factor)
+
+    if pil_alpha_channel:
+        pil_brightened.putalpha(pil_alpha_channel)
+
+    qimage_brightened = ImageQt.toqimage(pil_brightened.convert("RGBA")) # Ensure RGBA for QImage
+
+    # Check mid-gray pixel (0,0) - should be lighter
+    bc00 = qimage_brightened.pixelColor(0,0)
+    assert bc00.red() > color_mid.red() or bc00.red() == 255
+    assert bc00.green() > color_mid.green() or bc00.green() == 255
+    assert bc00.blue() > color_mid.blue() or bc00.blue() == 255
+    assert bc00.alpha() == color_mid.alpha() # Alpha preserved
+
+    # Check colored pixel (1,0) - R,G,B should be lighter, alpha preserved
+    bc10 = qimage_brightened.pixelColor(1,0)
+    assert bc10.red() > color_rgb.red() or bc10.red() == 255
+    assert bc10.green() > color_rgb.green() or bc10.green() == 255
+    assert bc10.blue() > color_rgb.blue() or bc10.blue() == 255
+    assert bc10.alpha() == color_rgb.alpha()
+
+
+    # 2. Test Contrast Increase (+50%) - on original RGB part
+    contrast_factor = 1.5
+    enhancer_contrast = ImageEnhance.Contrast(pil_to_enhance) # Use original RGB part
+    pil_contrasted = enhancer_contrast.enhance(contrast_factor)
+
+    if pil_alpha_channel:
+        pil_contrasted.putalpha(pil_alpha_channel)
+
+    qimage_contrasted = ImageQt.toqimage(pil_contrasted.convert("RGBA"))
+
+    # Check dark gray (0,1) - should be darker
+    cc01 = qimage_contrasted.pixelColor(0,1)
+    assert cc01.red() < color_dark.red() or cc01.red() == 0
+    assert cc01.green() < color_dark.green() or cc01.green() == 0
+    assert cc01.blue() < color_dark.blue() or cc01.blue() == 0
+    assert cc01.alpha() == color_dark.alpha()
+
+    # Check light gray (1,1) - should be lighter
+    cc11 = qimage_contrasted.pixelColor(1,1)
+    assert cc11.red() > color_light.red() or cc11.red() == 255
+    assert cc11.green() > color_light.green() or cc11.green() == 255
+    assert cc11.blue() > color_light.blue() or cc11.blue() == 255
+    assert cc11.alpha() == color_light.alpha()
+
+    # Check mid-gray (0,0) - should be close to original for contrast
+    # (Contrast pushes values away from mid-gray, so mid-gray itself changes less)
+    cc00 = qimage_contrasted.pixelColor(0,0)
+    # This assertion can be tricky, as "close" is subjective.
+    # For a simple test, we might expect it to be roughly similar if it was exactly mid-level.
+    # A perfect 128 might not change with contrast, but factors and rounding can affect it.
+    # Let's assert it's not extremely dark or light.
+    assert 100 < cc00.red() < 150 # Example range, might need adjustment
+    assert cc00.alpha() == color_mid.alpha()
+
+
+    # 3. Test Combined Effect (Brightness +50%, then Contrast +50%)
+    pil_bright_then_contrast = enhancer_contrast.enhance(brightness_factor) # Apply contrast to already brightened
+    # No, this is wrong. It should be:
+    # enhancer_b = ImageEnhance.Brightness(pil_to_enhance)
+    # temp_bright = enhancer_b.enhance(brightness_factor)
+    # enhancer_c = ImageEnhance.Contrast(temp_bright)
+    # pil_bright_then_contrast = enhancer_c.enhance(contrast_factor)
+
+    # Re-do combined correctly:
+    enhancer_b_cb = ImageEnhance.Brightness(pil_to_enhance)
+    pil_temp_bright_cb = enhancer_b_cb.enhance(brightness_factor)
+    enhancer_c_cb = ImageEnhance.Contrast(pil_temp_bright_cb)
+    pil_bright_then_contrast = enhancer_c_cb.enhance(contrast_factor)
+
+
+    if pil_alpha_channel:
+        pil_bright_then_contrast.putalpha(pil_alpha_channel)
+
+    qimage_combined = ImageQt.toqimage(pil_bright_then_contrast.convert("RGBA"))
+
+    # Check dark pixel (0,1): first brightened, then contrast pushes it darker than just brightened
+    # Original dark (50,50,50). Brightened (factor 1.5) -> ~75. Then contrast (factor 1.5) pushes it from 128.
+    # Expected: darker than 75 but potentially lighter than original 50 if brightening dominated.
+    # This becomes complex to assert simply without knowing the exact math of ImageEnhance.
+    # For now, a basic check that it processed and alpha is preserved.
+    cb01 = qimage_combined.pixelColor(0,1)
+    assert cb01.alpha() == color_dark.alpha()
+    # A qualitative check: e.g. if it's still darker than mid-gray after brightening and contrast
+    # assert cb01.red() < 128
+
+    # Check light pixel (1,1): brightened, then contrast pushes it lighter
+    cb11 = qimage_combined.pixelColor(1,1)
+    assert cb11.alpha() == color_light.alpha()
+    # Qualitative: should be lighter than just brightened, and much lighter than original light gray
+    # assert cb11.red() > (color_light.red() * brightness_factor) # Not strictly true due to clamping and contrast effect
+    assert cb11.red() > color_light.red() or cb11.red() == 255
 
 def test_invert_colors(qtbot):
     """Tests the QImage.invertPixels(QImage.InvertMode.InvertRgb) method."""

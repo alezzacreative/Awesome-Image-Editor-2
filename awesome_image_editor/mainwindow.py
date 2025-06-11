@@ -1,7 +1,7 @@
 import traceback
 from pathlib import Path
 
-from PyQt6.QtCore import QStandardPaths, Qt
+from PyQt6.QtCore import QStandardPaths, Qt, QModelIndex # Added QModelIndex
 from PyQt6.QtGui import QFont, QImage
 from PIL import Image as PILImage
 from PIL import ImageQt
@@ -17,6 +17,8 @@ from PyQt6.QtWidgets import (
 )
 
 from .dialogs.gaussian_blur import GaussianBlurDialog
+from .dialogs.brightness_contrast import BrightnessContrastDialog
+from PIL import ImageEnhance
 from .file_dialog import create_open_file_dialog, create_save_file_dialog
 from .file_format import AIEProject
 from .model_view.items.image import AIEImageItem # Ensure AIEImageItem is imported
@@ -254,7 +256,165 @@ class MainWindow(QMainWindow):
         menu = QMenu("Filters", self)
         menu.addAction("Gaussian Blur", self.add_gaussian_blur_to_selected_layer)
         menu.addAction("Invert Colors", self.apply_invert_colors_filter)
+        menu.addAction("Brightness/Contrast...", self.apply_brightness_contrast_filter)
         self.menuBar().addMenu(menu)
+
+    def apply_brightness_contrast_filter(self) -> None:
+        """Applies a brightness/contrast filter to the selected image layer using a dialog."""
+        if not self._project:
+            QMessageBox.warning(self, "No Project", "Please open or create a project first.")
+            return
+
+        scene = self._project.get_graphics_scene()
+        selected_items = scene.selectedItems()
+
+        if not selected_items:
+            QMessageBox.information(self, "No Selection", "Please select a layer.")
+            return
+        if len(selected_items) > 1:
+            QMessageBox.information(self, "Multiple Layers", "Please select only one layer.")
+            return
+
+        current_item = selected_items[0]
+        if not isinstance(current_item, AIEImageItem):
+            QMessageBox.information(self, "Not an Image Layer", "Filter applies only to image layers.")
+            return
+
+        original_qimage = current_item.image
+        if original_qimage.isNull():
+            QMessageBox.warning(self, "Empty Image", "Selected layer has no image data.")
+            return
+
+        try:
+            pil_original_image = ImageQt.fromqimage(original_qimage)
+            self.pil_alpha_channel = None # Initialize attribute
+
+            if pil_original_image.mode == 'RGBA' or pil_original_image.mode == 'LA':
+                self.pil_alpha_channel = pil_original_image.getchannel('A') if pil_original_image.mode == 'RGBA' else pil_original_image.getchannel('A') if pil_original_image.mode == 'LA' else None # Ensure alpha channel is correctly extracted for LA
+                pil_to_enhance = pil_original_image.convert('RGB')
+            elif pil_original_image.mode == 'P':
+                 pil_to_enhance = pil_original_image.convert('RGB')
+            else: # Includes 'RGB', 'L', etc. If 'L', ImageEnhance will work on it.
+                pil_to_enhance = pil_original_image.copy() # Work on a copy
+
+            # self.pil_preview_image = pil_to_enhance.copy() # This was for a copy, let's use pil_to_enhance as base for preview
+        except Exception as e:
+            QMessageBox.critical(self, "Error", f"Could not convert image for editing: {e}")
+            return
+
+        dialog = BrightnessContrastDialog(self)
+        # TODO: Optionally set initial dialog values from stored layer properties if they exist
+        # current_brightness, current_contrast = current_item.get_brightness_contrast_values() # Hypothetical
+        # dialog.set_values(current_brightness, current_contrast)
+
+
+        self._active_filter_item = current_item
+        # Store the base PIL image (RGB part) that enhancements will be applied to for preview
+        self._pil_base_for_preview = pil_to_enhance
+
+
+        def apply_preview(brightness_val: int, contrast_val: int, is_preview_enabled: bool):
+            if not self._active_filter_item or not hasattr(self, '_pil_base_for_preview'):
+                return
+
+            if not is_preview_enabled:
+                self._active_filter_item.image = original_qimage
+                self._active_filter_item.update()
+                # Update thumbnail to original
+                layers_view = self._project.get_layers_widget().list_view
+                tree_model = layers_view.model()
+                item_index = layers_view.currentIndex()
+                if item_index.isValid() and tree_model.getItem(item_index) == self._active_filter_item:
+                    tree_model.dataChanged.emit(item_index, item_index, [Qt.ItemDataRole.DecorationRole])
+                return
+
+            temp_pil_image = self._pil_base_for_preview.copy()
+
+            brightness_factor = max(0.1, 1.0 + (brightness_val / 100.0))
+            enhancer_brightness = ImageEnhance.Brightness(temp_pil_image)
+            img_bright = enhancer_brightness.enhance(brightness_factor)
+
+            contrast_factor = max(0.1, 1.0 + (contrast_val / 100.0))
+            enhancer_contrast = ImageEnhance.Contrast(img_bright)
+            img_final_pil = enhancer_contrast.enhance(contrast_factor)
+
+            if hasattr(self, 'pil_alpha_channel') and self.pil_alpha_channel:
+                # Ensure img_final_pil is RGB before putting alpha
+                if img_final_pil.mode != 'RGB':
+                    img_final_pil = img_final_pil.convert('RGB')
+                img_final_pil.putalpha(self.pil_alpha_channel)
+
+            preview_qimage = ImageQt.toqimage(img_final_pil)
+            self._active_filter_item.image = preview_qimage
+            self._active_filter_item.update()
+
+            # Update thumbnail in preview
+            layers_view = self._project.get_layers_widget().list_view
+            tree_model = layers_view.model()
+            item_index = layers_view.currentIndex()
+            if item_index.isValid() and tree_model.getItem(item_index) == self._active_filter_item:
+                tree_model.dataChanged.emit(item_index, item_index, [Qt.ItemDataRole.DecorationRole])
+
+        dialog.valuesChangedForPreview.connect(apply_preview)
+
+        if dialog.is_preview_enabled(): # Apply initial preview
+             apply_preview(dialog.get_brightness(), dialog.get_contrast(), True)
+
+        if dialog.exec() == QDialog.DialogCode.Accepted:
+            final_brightness = dialog.get_brightness()
+            final_contrast = dialog.get_contrast()
+
+            # Apply final transformation to the original RGB part
+            final_pil_to_enhance = self._pil_base_for_preview.copy() # Start fresh from original RGB part
+
+            brightness_factor = max(0.1, 1.0 + (final_brightness / 100.0))
+            enhancer_b = ImageEnhance.Brightness(final_pil_to_enhance)
+            img_b = enhancer_b.enhance(brightness_factor)
+
+            contrast_factor = max(0.1, 1.0 + (final_contrast / 100.0))
+            enhancer_c = ImageEnhance.Contrast(img_b)
+            final_pil_image = enhancer_c.enhance(contrast_factor)
+
+            if hasattr(self, 'pil_alpha_channel') and self.pil_alpha_channel:
+                if final_pil_image.mode != 'RGB': # Ensure it's RGB before putting alpha
+                    final_pil_image = final_pil_image.convert('RGB')
+                final_pil_image.putalpha(self.pil_alpha_channel)
+
+            final_qimage = ImageQt.toqimage(final_pil_image)
+            current_item.image = final_qimage
+            current_item.update()
+
+            # Update model thumbnail after final application
+            layers_view = self._project.get_layers_widget().list_view
+            tree_model = layers_view.model()
+            item_index = layers_view.currentIndex()
+            if item_index.isValid() and tree_model.getItem(item_index) == current_item:
+                 tree_model.dataChanged.emit(item_index, item_index, [Qt.ItemDataRole.DecorationRole])
+            else: # Fallback if selection changed or is weird (should not happen with modal dialog)
+                for r_idx in range(tree_model.rowCount(QModelIndex())): # Check top-level items
+                    idx = tree_model.index(r_idx, 0, QModelIndex())
+                    if tree_model.getItem(idx) == current_item:
+                        tree_model.dataChanged.emit(idx, idx, [Qt.ItemDataRole.DecorationRole])
+                        break
+            QMessageBox.information(self, "Filter Applied", "Brightness/Contrast filter applied.")
+        else:
+            # Dialog was cancelled, ensure original image and thumbnail are restored
+            current_item.image = original_qimage
+            current_item.update()
+            layers_view = self._project.get_layers_widget().list_view
+            tree_model = layers_view.model()
+            item_index = layers_view.currentIndex()
+            if item_index.isValid() and tree_model.getItem(item_index) == current_item:
+                 tree_model.dataChanged.emit(item_index, item_index, [Qt.ItemDataRole.DecorationRole])
+            # QMessageBox.information(self, "Filter Cancelled", "Brightness/Contrast filter cancelled.")
+
+        if hasattr(self, '_active_filter_item'):
+            del self._active_filter_item
+        if hasattr(self, '_pil_base_for_preview'):
+            del self._pil_base_for_preview
+        if hasattr(self, 'pil_alpha_channel'):
+            del self.pil_alpha_channel
+
 
     def apply_invert_colors_filter(self) -> None:
         """Applies an invert colors filter to the selected image layer."""
