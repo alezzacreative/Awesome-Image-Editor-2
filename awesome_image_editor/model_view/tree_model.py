@@ -110,19 +110,19 @@ class TreeModel(QAbstractItemModel):
         return is_data_changed
 
     def flags(self, index):
-        if not index.isValid():
-            return Qt.ItemFlag.NoItemFlags
-
         return (
-            Qt.ItemFlag.ItemIsEnabled
-            | Qt.ItemFlag.ItemIsSelectable
-            | Qt.ItemFlag.ItemIsUserCheckable
+            (
+                Qt.ItemFlag.ItemIsEnabled
+                | Qt.ItemFlag.ItemIsSelectable
+                | Qt.ItemFlag.ItemIsUserCheckable
+            )
+            if index.isValid()
+            else Qt.ItemFlag.NoItemFlags
         )
 
     def getItem(self, index: QModelIndex):
         if index.isValid():
-            item: TreeItemProtocol = index.internalPointer()
-            if item:
+            if item := index.internalPointer():
                 return item
 
         return None
@@ -144,10 +144,11 @@ class TreeModel(QAbstractItemModel):
         if parentItem is None:
             parentItem = self._root_item
 
-        if not isinstance(parentItem, RootItemParent):
-            return parentItem.childItems().index(item)  # type: ignore
-
-        return 0
+        return (
+            0
+            if isinstance(parentItem, RootItemParent)
+            else parentItem.childItems().index(item)
+        )
 
     def parent(self, index: QModelIndex):
         if not index.isValid():

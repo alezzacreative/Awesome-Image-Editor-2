@@ -105,7 +105,7 @@ class AIEProject:
         scene = project.get_graphics_scene()
         num_layers = read_uint32_le(reader)
 
-        for i in range(num_layers):
+        for _ in range(num_layers):
             chunk_type = read_pascal_string(reader)
 
             if chunk_type == IMAGE_CHUNK_TYPE:
